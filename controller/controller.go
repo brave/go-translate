@@ -5,6 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"time"
 
 	"github.com/brave/go-translate/language"
@@ -14,11 +16,22 @@ import (
 )
 
 // MSTranslateServer specifies the remote MS translate server used by
-// brave-core, and it can be set to other hosts during testing.
+// brave-core, and it can be set to a mock server during testing.
 var MSTranslateServer = "https://api.cognitive.microsofttranslator.com"
 
+// GoogleTranslateServerProxy specifies the proxy server for requesting
+// resource from google translate server, and it can be set to a mock server
+// during testing.
+var GoogleTranslateServerProxy = "https://translate.bravesoftware.com"
 
 const (
+	// GoogleTranslateServer specifies the remote google translate server.
+	GoogleTranslateServer = "https://translate.googleapis.com"
+
+	// GStaticServerProxy specifies the proxy server for requesting resource
+	// from google gstatic server.
+	GStaticServerProxy = "https://translate-static.bravesoftware.com"
+
 	languageEndpoint = "/languages?api-version=3.0&scope=translation"
 )
 
@@ -30,6 +43,13 @@ func TranslateRouter() chi.Router {
 	r.Post("/translate", Translate)
 	r.Get("/language", GetLanguageList)
 
+	r.Get("/translate_a/element.js", GetTranslateScript)
+	r.Get("/element/*/js/element/element_main.js", GetTranslateScript)
+	r.Get("/translate_static/js/element/main.js", GetTranslateScript)
+
+	r.Get("/translate_static/css/translateelement.css", GetGoogleTranslateResource)
+	r.Get("/images/branding/product/1x/translate_24dp.png", GetGStaticResource)
+	r.Get("/images/branding/product/2x/translate_24dp.png", GetGStaticResource)
 
 	return r
 }
@@ -145,4 +165,33 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("Error writing response body for translate requests: %v", err)
 	}
+}
+
+// GetTranslateScript use a reverse proxy to forward handle translate script
+// requests to brave's proxy server. We're not replying a HTTP redirect
+// directly because the Originin the response header will be cleared to null
+// instead of having the value "https://translate.googleapis.com" when the
+// client follows the redirect to a cross origin, so we would violate the CORS
+// policy when the client try to access other resources from google server.
+func GetTranslateScript(w http.ResponseWriter, r *http.Request) {
+	target, _ := url.Parse(GoogleTranslateServerProxy)
+	// Use a custom director so req.Host will be changed.
+	director := func(req *http.Request) {
+		req.URL.Scheme = target.Scheme
+		req.URL.Host = target.Host
+		req.Host = target.Host
+	}
+	proxy := &httputil.ReverseProxy{Director: director}
+	proxy.ServeHTTP(w, r)
+}
+
+// GetGoogleTranslateResource redirect the resource requests from google
+// translate server to brave's proxy.
+func GetGoogleTranslateResource(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, GoogleTranslateServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
+}
+
+// GetGStaticResource redirect the requests from gstatic to brave's proxy.
+func GetGStaticResource(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, GStaticServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
 }
