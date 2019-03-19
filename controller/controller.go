@@ -22,7 +22,7 @@ var MSTranslateServer = "https://api.cognitive.microsofttranslator.com"
 // GoogleTranslateServerProxy specifies the proxy server for requesting
 // resource from google translate server, and it can be set to a mock server
 // during testing.
-var GoogleTranslateServerProxy = "https://translate.bravesoftware.com"
+var GoogleTranslateServerProxy = "https://translate.brave.com"
 
 const (
 	// GoogleTranslateServer specifies the remote google translate server.
@@ -30,7 +30,7 @@ const (
 
 	// GStaticServerProxy specifies the proxy server for requesting resource
 	// from google gstatic server.
-	GStaticServerProxy = "https://translate-static.bravesoftware.com"
+	GStaticServerProxy = "https://translate-static.brave.com"
 
 	languageEndpoint = "/languages?api-version=3.0&scope=translation"
 )
