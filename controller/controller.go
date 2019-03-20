@@ -67,6 +67,7 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("GET", MSTranslateServer+languageEndpoint, nil)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error creating MS request: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	client := getHTTPClient()
@@ -99,6 +100,7 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	msBody, err := ioutil.ReadAll(msResp.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error reading MS response body: %v", err), http.StatusInternalServerError)
+		return
 	}
 	body, err := language.ToGoogleLanguageList(msBody)
 	if err != nil {
@@ -154,6 +156,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	msBody, err := ioutil.ReadAll(msResp.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error reading MS response body: %v", err), http.StatusInternalServerError)
+		return
 	}
 	body, err := translate.ToGoogleResponseBody(msBody, isAuto)
 	if err != nil {
