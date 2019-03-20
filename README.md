@@ -15,16 +15,16 @@ There are also a few static resources requested during in-page translation will 
 
 ## Dependencies
 
-- Install Go 1.10 or later.
-- `dep` is used to install the Go dependencies.
+- Install Go 1.12 or later.
+- Dependencies are managed by go modules.
 - `go get -u github.com/golangci/golangci-lint/cmd/golangci-lint`
 
 ## Setup
 
 ```
-go get -d github.com/brave/go-translate
-cd ~/go/src/github.com/brave/go-translate
-dep ensure
+git clone git@github.com:brave/go-translate.git
+cd ~/path-to/go-translate
+make build
 ```
 
 ## Run lint:
