@@ -51,7 +51,7 @@ func StartServer() {
 	logger.WithFields(logrus.Fields{"prefix": "main"}).Info("Starting server")
 	serverCtx, r := setupRouter(serverCtx, logger)
 	port := ":8195"
-	fmt.Printf("Starting server: http://localhost%s", port)
+	fmt.Println("Starting server: http://localhost" + port)
 	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
 	err := srv.ListenAndServe()
 	if err != nil {

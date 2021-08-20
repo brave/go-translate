@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
+	"github.com/grokify/html-strip-tags-go"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -63,48 +63,14 @@ func getHTTPClient() *http.Client {
 // GetLanguageList send a request to Microsoft server and convert the response
 // into google format and reply back to the client.
 func GetLanguageList(w http.ResponseWriter, r *http.Request) {
-	// Send a get language list request to MS
-	req, err := http.NewRequest("GET", MSTranslateServer+languageEndpoint, nil)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error creating MS request: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	client := getHTTPClient()
-	msResp, err := client.Do(req)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending request to MS server: %v", err), http.StatusInternalServerError)
-		return
-	}
-	defer func() {
-		err := msResp.Body.Close()
-		if err != nil {
-			log.Errorf("Error closing response body stream: %v", err)
-		}
-	}()
-
 	// Set response header
-	w.Header().Set("Content-Type", msResp.Header["Content-Type"][0])
-	w.WriteHeader(msResp.StatusCode)
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
+	w.WriteHeader(http.StatusOK)
 
-	// Copy resonse body if status is not OK
-	if msResp.StatusCode != http.StatusOK {
-		_, err = io.Copy(w, msResp.Body)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error copying MS response body: %v", err), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Convert to google format language list and write it back
-	msBody, err := ioutil.ReadAll(msResp.Body)
+	body, err := language.GetBergamotLanguageList()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading MS response body: %v", err), http.StatusInternalServerError)
-		return
-	}
-	body, err := language.ToGoogleLanguageList(msBody)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to google language list: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error getting language list: %v", err), http.StatusInternalServerError)
 		return
 	}
 	_, err = w.Write(body)
@@ -113,58 +79,94 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Translate converts a Google format translate request into a Microsoft format
-// one which will be send to the Microsoft server, and write a Google format
-// response back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
-	// Convert google format request to MS format
-	req, isAuto, err := translate.ToMicrosoftRequest(r, MSTranslateServer)
+	slVals := r.URL.Query()["sl"]
+	if len(slVals) != 1 {
+		http.Error(w, fmt.Sprintf("Error parsing the request"), http.StatusBadRequest)
+		return;
+	}
+	tlVals := r.URL.Query()["tl"]
+	if len(tlVals) != 1 {
+		http.Error(w, fmt.Sprintf("Error parsing the request"), http.StatusBadRequest)
+		return;
+	}
+	from := slVals[0]
+	to := tlVals[0]
+
+	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to MS request: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Error parsing the request: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// Send translate request to MS server
-	client := getHTTPClient()
-	msResp, err := client.Do(req)
+	allTexts := r.PostForm["q"]
+	textCount := len(allTexts)
+
+	originalTextsByLanguages := map[string][]string {}
+	originalTextIdsByLanguages := map[string][]int {}
+	for id, text := range allTexts {
+		text = strip.StripTags(text)
+		textLanguage := from
+		if textLanguage == "auto" {
+			detectedLanguage, cldErr := translate.DetectLanguage(text)
+			if cldErr != nil {
+				textLanguage = "unknown"
+			} else {
+				textLanguage = detectedLanguage
+			}
+		}
+		textsForLanguage, ok := originalTextsByLanguages[textLanguage]
+		if ok {
+			originalTextsByLanguages[textLanguage] = append(textsForLanguage, text)
+		} else {
+			originalTextsByLanguages[textLanguage] = []string{text}
+		}
+		idsForLanguage, ok := originalTextIdsByLanguages[textLanguage]
+		if ok {
+			originalTextIdsByLanguages[textLanguage] = append(idsForLanguage, id)
+		} else {
+			originalTextIdsByLanguages[textLanguage] = []int{id}
+		}
+	}
+
+	var translatedTexts = make([]string, textCount)
+	for language, texts := range originalTextsByLanguages {
+		idList := originalTextIdsByLanguages[language]
+		processedTexts := []string{}
+		if language != "unknown" {
+			translateOutput, err := translate.TranslateTexts(texts, language, to)
+			if err == nil {
+				processedTexts = translateOutput
+			}
+		}
+		if len(processedTexts) == 0 {
+			processedTexts = texts
+		}
+		for ind, processedText := range processedTexts {
+			if ind >= len(idList) {
+				break
+			}
+			translatedTexts[idList[ind]] = processedText
+		}
+	}
+
+	body := make([]string, textCount)
+	for i, translatedText := range translatedTexts {
+		body[i] = translatedText
+	}
+
+	mbody, err := json.Marshal(body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending request to MS server: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error forming response body: %v", err), http.StatusBadRequest)
 		return
 	}
-	defer func() {
-		err := msResp.Body.Close()
-		if err != nil {
-			log.Errorf("Error closing response body stream: %v", err)
-		}
-	}()
 
 	// Set Header
-	w.Header().Set("Content-Type", msResp.Header["Content-Type"][0])
+	w.Header().Set("Content-Type", r.Header["Content-Type"][0])
 	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
+	w.WriteHeader(http.StatusOK)
 
-	// Copy resonse body if status is not OK
-	if msResp.StatusCode != http.StatusOK {
-		w.WriteHeader(msResp.StatusCode)
-		_, err = io.Copy(w, msResp.Body)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error copying MS response body: %v", err), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Set google format response body
-	msBody, err := ioutil.ReadAll(msResp.Body)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading MS response body: %v", err), http.StatusInternalServerError)
-		return
-	}
-	body, err := translate.ToGoogleResponseBody(msBody, isAuto)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to google response body: %v", err), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(msResp.StatusCode)
-	_, err = w.Write(body)
+	_, err = w.Write(mbody)
 	if err != nil {
 		log.Errorf("Error writing response body for translate requests: %v", err)
 	}
