@@ -5,6 +5,7 @@ import (
 	"github.com/jmhodges/gocld3/cld3"
 	"io"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -35,6 +36,26 @@ func TranslateTexts(texts []string, from string, to string) ([]string, error) {
 
 	modelFolder := from + to + "/"
 	modelDataPath := allModelsPath + modelFolder
+
+	if _, err := os.Stat(modelDataPath); os.IsNotExist(err) {
+		if to == "en" {
+			return []string{}, err
+		}
+		firstPhasePath := allModelsPath + from + "en/"
+		if _, err := os.Stat(firstPhasePath); os.IsNotExist(err) {
+			return []string{}, err
+		}
+		secondPhasePath := allModelsPath + "en" + to + "/"
+		if _, err := os.Stat(secondPhasePath); os.IsNotExist(err) {
+			return []string{}, err
+		}
+		firstPhaseResultTexts, err := TranslateTexts(texts, from, "en")
+		if err != nil {
+			return []string{}, err
+		}
+		return TranslateTexts(firstPhaseResultTexts, "en", to)
+	}
+
 	files, err := ioutil.ReadDir(modelDataPath)
 	if err != nil {
 		return []string{}, err

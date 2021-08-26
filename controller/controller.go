@@ -15,10 +15,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// MSTranslateServer specifies the remote MS translate server used by
-// brave-core, and it can be set to a mock server during testing.
-var MSTranslateServer = "https://api.cognitive.microsofttranslator.com"
-
 // GoogleTranslateServerProxy specifies the proxy server for requesting
 // resource from google translate server, and it can be set to a mock server
 // during testing.
@@ -60,8 +56,7 @@ func getHTTPClient() *http.Client {
 	}
 }
 
-// GetLanguageList send a request to Microsoft server and convert the response
-// into google format and reply back to the client.
+// GetLanguageList generates language list in google format and replies back to the client.
 func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	// Set response header
 	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
@@ -79,6 +74,7 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Translate translates input texts with Bergamot and sends back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
 	slVals := r.URL.Query()["sl"]
 	if len(slVals) != 1 {
@@ -193,10 +189,10 @@ func GetTranslateScript(w http.ResponseWriter, r *http.Request) {
 // GetGoogleTranslateResource redirect the resource requests from google
 // translate server to brave's proxy.
 func GetGoogleTranslateResource(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, GoogleTranslateServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, GoogleTranslateServerProxy + r.URL.Path, http.StatusTemporaryRedirect)
 }
 
 // GetGStaticResource redirect the requests from gstatic to brave's proxy.
 func GetGStaticResource(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, GStaticServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, GStaticServerProxy + r.URL.Path, http.StatusTemporaryRedirect)
 }

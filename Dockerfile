@@ -61,4 +61,6 @@ RUN cd \
     && cp -r dev/* . \
     && cp -r prod/* .
 
+RUN go get github.com/grokify/html-strip-tags-go
+
 COPY run_server.sh /run_server.sh
