@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/grokify/html-strip-tags-go"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -74,6 +73,80 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func EncodeTags(text string) (string, []string) {
+	balance := 0
+	token := ""
+	tokens := []string {}
+	cleanText := ""
+	elements := []rune {}
+	for _, char := range text {
+		elements = append(elements, char)
+	}
+	i := 0
+	last_close := -2
+	last_open := -2
+	for i < len(elements) {
+		if elements[i] == '<' {
+			if balance == 0 {
+				last_open = i
+			}
+			balance += 1
+		}
+		if balance == 0 {
+			if (i + 2 < len(elements)) && (elements[i] == '(') && (elements[i + 1] == '1') && (elements[i + 2] == ')') {
+				tokens = append(tokens, " (1) ")
+				cleanText += " (1) "
+				i += 3
+				continue
+			} else {
+				cleanText += string(elements[i])
+			}
+		} else {
+			token += string(elements[i])
+		}
+		if elements[i] == '>' {
+			balance -= 1
+			if balance == 0 {
+				if last_close + 1 == last_open {
+					tokens[len(tokens) - 1] += token
+				} else {
+					cleanText += " (1) "
+					tokens = append(tokens, token)
+				}
+				token = ""
+				last_close = i
+			}
+		}
+		i += 1
+	}
+	return cleanText, tokens
+}
+
+func DecodeTags(text string, tokens []string) (string) {
+	tokenIndex := 0
+	decodedText := ""
+	elements := []rune {}
+	for _, char := range text {
+		elements = append(elements, char)
+	}
+	i := 0
+	for i < len(elements) {
+		if (i + 2 < len(elements)) && (elements[i] == '(') && (elements[i + 1] == '1') && (elements[i + 2] == ')') {
+			if tokenIndex == len(tokens) {
+				decodedText += ""
+			} else {
+				decodedText += tokens[tokenIndex]
+				tokenIndex += 1
+			}
+			i += 3
+		} else {
+			decodedText += string(elements[i])
+			i += 1
+		}
+	}
+	return decodedText
+}
+
 // Translate translates input texts with Bergamot and sends back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
 	slVals := r.URL.Query()["sl"]
@@ -101,7 +174,6 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	originalTextsByLanguages := map[string][]string {}
 	originalTextIdsByLanguages := map[string][]int {}
 	for id, text := range allTexts {
-		text = strip.StripTags(text)
 		textLanguage := from
 		if textLanguage == "auto" {
 			detectedLanguage, cldErr := translate.DetectLanguage(text)
@@ -127,22 +199,30 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 
 	var translatedTexts = make([]string, textCount)
 	for language, texts := range originalTextsByLanguages {
+		var encodedTexts []string
+		var tagTokens [][]string
+		encodedTexts = make([]string, len(texts))
+		tagTokens = make([][]string, len(texts))
+		for ind, text := range texts {
+			encodedTexts[ind], tagTokens[ind] = EncodeTags(text)
+		}
 		idList := originalTextIdsByLanguages[language]
 		processedTexts := []string{}
 		if language != "unknown" {
-			translateOutput, err := translate.TranslateTexts(texts, language, to)
+			translateOutput, err := translate.TranslateTexts(encodedTexts, language, to)
 			if err == nil {
 				processedTexts = translateOutput
 			}
 		}
 		if len(processedTexts) == 0 {
-			processedTexts = texts
+			processedTexts = encodedTexts
 		}
 		for ind, processedText := range processedTexts {
 			if ind >= len(idList) {
 				break
 			}
-			translatedTexts[idList[ind]] = processedText
+			decProcessedText := DecodeTags(processedText, tagTokens[ind])
+			translatedTexts[idList[ind]] = decProcessedText
 		}
 	}
 

@@ -119,5 +119,6 @@ func TranslateTexts(texts []string, from string, to string) ([]string, error) {
 
 	translatedText := outb.String()
 	translations := strings.Split(translatedText, "\n")
+
 	return translations, nil
 }
