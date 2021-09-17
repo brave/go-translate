@@ -26,6 +26,7 @@ RUN wget --https-only --secure-protocol=PFS https://apt.repos.intel.com/intel-gp
 RUN cd \
     && git clone https://github.com/browsermt/bergamot-translator.git \
     && cd bergamot-translator \
+    && git checkout 63120c174e3edfd664175d4a2be095d8b50a112f \
     && git submodule update --init --recursive \
     && mkdir build-native \
     && cd build-native \
@@ -36,6 +37,7 @@ RUN cd \
 RUN cd \
     && git clone https://github.com/mozilla/firefox-translations-models.git \
     && cd firefox-translations-models \
+    && git checkout b22ca725bb102c034dabf3871d7349f2aca8d73d \
     && cd models \
     && gunzip -r . \
     && cp -r dev/* . \
