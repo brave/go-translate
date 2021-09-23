@@ -26,8 +26,6 @@ const (
 	// GStaticServerProxy specifies the proxy server for requesting resource
 	// from google gstatic server.
 	GStaticServerProxy = "https://translate-static.brave.com"
-
-	languageEndpoint = "/languages?api-version=3.0&scope=translation"
 )
 
 // TranslateRouter add routers for translate requests and translate script

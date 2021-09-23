@@ -11,9 +11,10 @@ import (
 )
 
 const (
+	CLDConfidenceThreshold = 0.3
 	BergamotAppPath = "/root/bergamot-translator/build-native/app/"
-	allModelsPath = "/root/firefox-translations-models/models/"
-	configFolderPath = "/root/app/"
+	AllModelsPath = "/root/firefox-translations-models/models/"
+	ConfigFolderPath = "/root/app/"
 )
 
 func DetectLanguage(text string) (string, error) {
@@ -23,7 +24,7 @@ func DetectLanguage(text string) (string, error) {
 	}
 	defer cld3.FreeLanguageIdentifier(langId)
 	res := langId.FindLanguage(text)
-	if res.Probability >= 0.3 {
+	if res.Probability >= CLDConfidenceThreshold {
 		return res.Language, nil
 	} else {
 		return "unknown", nil
@@ -32,20 +33,20 @@ func DetectLanguage(text string) (string, error) {
 
 func TranslateTexts(texts []string, from string, to string) ([]string, error) {
 	bergamotExecPath := BergamotAppPath + "bergamot"
-	configFilePath := configFolderPath + "config.yml"
+	configFilePath := ConfigFolderPath + "config.yml"
 
 	modelFolder := from + to + "/"
-	modelDataPath := allModelsPath + modelFolder
+	modelDataPath := AllModelsPath + modelFolder
 
 	if _, err := os.Stat(modelDataPath); os.IsNotExist(err) {
 		if to == "en" {
 			return []string{}, err
 		}
-		firstPhasePath := allModelsPath + from + "en/"
+		firstPhasePath := AllModelsPath + from + "en/"
 		if _, err := os.Stat(firstPhasePath); os.IsNotExist(err) {
 			return []string{}, err
 		}
-		secondPhasePath := allModelsPath + "en" + to + "/"
+		secondPhasePath := AllModelsPath + "en" + to + "/"
 		if _, err := os.Stat(secondPhasePath); os.IsNotExist(err) {
 			return []string{}, err
 		}
