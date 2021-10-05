@@ -54,8 +54,8 @@ RUN CGO_ENABLED=1 GOOS=linux go build \
 
 FROM ubuntu:20.04 as artifact
 
-RUN apt update
-RUN apt install -y git autoconf libtool g++ make
+RUN apt-get update
+RUN apt-get install -y git autoconf libtool g++ make
 
 # Install protobuf
 RUN cd \
