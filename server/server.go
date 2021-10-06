@@ -53,7 +53,7 @@ func StartServer() {
 		// setup metrics on another non-public port 9090
 		err := http.ListenAndServe(":9090", middleware.Metrics())
 		if err != nil {
-			sentry.CaptureException(err)
+			raven.CaptureErrorAndWait(err, nil)
 			panic(fmt.Sprintf("metrics HTTP server start failed: %s", err.Error()))
 		}
 	}()
