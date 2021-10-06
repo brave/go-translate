@@ -40,7 +40,6 @@ func setupRouter(ctx context.Context, logger *logrus.Logger) (context.Context, *
 	}
 
 	r.Mount("/", controller.TranslateRouter())
-	r.Get("/metrics", middleware.Metrics())
 
 	return ctx, r
 }
@@ -49,6 +48,16 @@ func setupRouter(ctx context.Context, logger *logrus.Logger) (context.Context, *
 func StartServer() {
 	serverCtx, logger := setupLogger(context.Background())
 	logger.WithFields(logrus.Fields{"prefix": "main"}).Info("Starting server")
+
+	go func() {
+		// setup metrics on another non-public port 9090
+		err := http.ListenAndServe(":9090", middleware.Metrics())
+		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
+			panic(fmt.Sprintf("metrics HTTP server start failed: %s", err.Error()))
+		}
+	}()
+
 	serverCtx, r := setupRouter(serverCtx, logger)
 	port := ":8195"
 	fmt.Println("Starting server: http://localhost" + port)
