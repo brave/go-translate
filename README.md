@@ -1,4 +1,4 @@
-# Translation relay server for brave
+# Translation relay server for Brave Translate
 
 `go-translate` implements a translation relay server for use in brave-core written in Go.
 
@@ -12,6 +12,7 @@ The translation relay server supports 2 endpoints
 
 There are also a few static resources requested during in-page translation will be handled by go-translate and will be proxied through a brave to avoid introducing direct connection to any Google server.
 
+## Bergamot and path to local Machine Translation
 
 ## Dependencies
 
