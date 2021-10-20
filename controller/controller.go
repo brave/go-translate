@@ -34,6 +34,7 @@ func TranslateRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/translate", Translate)
+	r.Options("/translate", HandleCorsPreflight)
 	r.Get("/language", GetLanguageList)
 
 	r.Get("/translate_a/element.js", GetTranslateScript)
@@ -143,6 +144,11 @@ func DecodeTags(text string, tokens []string) string {
 		}
 	}
 	return decodedText
+}
+
+func HandleCorsPreflight(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.WriteHeader(http.StatusOK)
 }
 
 // Translate translates input texts with Bergamot and sends back to the client.
