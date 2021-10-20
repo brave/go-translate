@@ -74,9 +74,9 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 func EncodeTags(text string) (string, []string) {
 	balance := 0
 	token := ""
-	tokens := []string {}
+	tokens := []string{}
 	cleanText := ""
-	elements := []rune {}
+	elements := []rune{}
 	for _, char := range text {
 		elements = append(elements, char)
 	}
@@ -91,7 +91,7 @@ func EncodeTags(text string) (string, []string) {
 			balance += 1
 		}
 		if balance == 0 {
-			if (i + 2 < len(elements)) && (elements[i] == '(') && (elements[i + 1] == '1') && (elements[i + 2] == ')') {
+			if (i+2 < len(elements)) && (elements[i] == '(') && (elements[i+1] == '1') && (elements[i+2] == ')') {
 				tokens = append(tokens, " (1) ")
 				cleanText += " (1) "
 				i += 3
@@ -105,8 +105,8 @@ func EncodeTags(text string) (string, []string) {
 		if elements[i] == '>' {
 			balance -= 1
 			if balance == 0 {
-				if last_close + 1 == last_open {
-					tokens[len(tokens) - 1] += token
+				if last_close+1 == last_open {
+					tokens[len(tokens)-1] += token
 				} else {
 					cleanText += " (1) "
 					tokens = append(tokens, token)
@@ -120,16 +120,16 @@ func EncodeTags(text string) (string, []string) {
 	return cleanText, tokens
 }
 
-func DecodeTags(text string, tokens []string) (string) {
+func DecodeTags(text string, tokens []string) string {
 	tokenIndex := 0
 	decodedText := ""
-	elements := []rune {}
+	elements := []rune{}
 	for _, char := range text {
 		elements = append(elements, char)
 	}
 	i := 0
 	for i < len(elements) {
-		if (i + 2 < len(elements)) && (elements[i] == '(') && (elements[i + 1] == '1') && (elements[i + 2] == ')') {
+		if (i+2 < len(elements)) && (elements[i] == '(') && (elements[i+1] == '1') && (elements[i+2] == ')') {
 			if tokenIndex == len(tokens) {
 				decodedText += ""
 			} else {
@@ -150,12 +150,12 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	slVals := r.URL.Query()["sl"]
 	if len(slVals) != 1 {
 		http.Error(w, fmt.Sprintf("Error parsing the request"), http.StatusBadRequest)
-		return;
+		return
 	}
 	tlVals := r.URL.Query()["tl"]
 	if len(tlVals) != 1 {
 		http.Error(w, fmt.Sprintf("Error parsing the request"), http.StatusBadRequest)
-		return;
+		return
 	}
 	from := slVals[0]
 	to := tlVals[0]
@@ -169,8 +169,8 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	allTexts := r.PostForm["q"]
 	textCount := len(allTexts)
 
-	originalTextsByLanguages := map[string][]string {}
-	originalTextIdsByLanguages := map[string][]int {}
+	originalTextsByLanguages := map[string][]string{}
+	originalTextIdsByLanguages := map[string][]int{}
 	for id, text := range allTexts {
 		textLanguage := from
 		if textLanguage == "auto" {
@@ -267,10 +267,10 @@ func GetTranslateScript(w http.ResponseWriter, r *http.Request) {
 // GetGoogleTranslateResource redirect the resource requests from google
 // translate server to brave's proxy.
 func GetGoogleTranslateResource(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, GoogleTranslateServerProxy + r.URL.Path, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, GoogleTranslateServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
 }
 
 // GetGStaticResource redirect the requests from gstatic to brave's proxy.
 func GetGStaticResource(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, GStaticServerProxy + r.URL.Path, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, GStaticServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
 }
