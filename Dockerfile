@@ -38,6 +38,7 @@ RUN cd \
     && git clone https://github.com/mozilla/firefox-translations-models.git \
     && cd firefox-translations-models \
     && git checkout b22ca725bb102c034dabf3871d7349f2aca8d73d \
+    && git lfs fetch --all \
     && cd models \
     && gunzip -r . \
     && cp -r dev/* . \
