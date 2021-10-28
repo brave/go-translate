@@ -92,6 +92,9 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		rctx := chi.RouteContext(r.Context())
 		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		fs.ServeHTTP(w, r)
 	})
 }
