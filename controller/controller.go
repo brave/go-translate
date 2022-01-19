@@ -18,6 +18,10 @@ import (
 // MSTranslateServer specifies the remote MS translate server used by
 // brave-core, and it can be set to a mock server during testing.
 var MSTranslateServer = "https://api.cognitive.microsofttranslator.com"
+var LNXTranslateServer = "https://api-b2b.backenster.com/b1/api/v3"
+
+// TODO(Moritz Haller): inject via env var
+var ApiKey = ""
 
 // GoogleTranslateServerProxy specifies the proxy server for requesting
 // resource from google translate server, and it can be set to a mock server
@@ -32,7 +36,8 @@ const (
 	// from google gstatic server.
 	GStaticServerProxy = "https://translate-static.brave.com"
 
-	languageEndpoint = "/languages?api-version=3.0&scope=translation"
+	// languageEndpoint = "/languages?api-version=3.0&scope=translation"
+	languageEndpoint = "/getLanguages?platform=api"
 )
 
 // TranslateRouter add routers for translate requests and translate script
@@ -41,6 +46,7 @@ func TranslateRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/translate", Translate)
+	r.Options("/translate", HandleCorsPreflight)
 	r.Get("/language", GetLanguageList)
 
 	r.Get("/translate_a/element.js", GetTranslateScript)
@@ -54,6 +60,11 @@ func TranslateRouter() chi.Router {
 	return r
 }
 
+func HandleCorsPreflight(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.WriteHeader(http.StatusOK)
+}
+
 func getHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout: time.Second * 10,
@@ -64,7 +75,9 @@ func getHTTPClient() *http.Client {
 // into google format and reply back to the client.
 func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	// Send a get language list request to MS
-	req, err := http.NewRequest("GET", MSTranslateServer+languageEndpoint, nil)
+	req, err := http.NewRequest("GET", LNXTranslateServer+languageEndpoint, nil)
+	req.Header.Add("Authorization", "Bearer "+ApiKey)
+
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error creating MS request: %v", err), http.StatusInternalServerError)
 		return
@@ -118,11 +131,13 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 // response back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
 	// Convert google format request to MS format
-	req, isAuto, err := translate.ToMicrosoftRequest(r, MSTranslateServer)
+	req, isAuto, err := translate.ToMicrosoftRequest(r, LNXTranslateServer)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error converting to MS request: %v", err), http.StatusBadRequest)
 		return
 	}
+
+	req.Header.Add("Authorization", "Bearer "+ApiKey)
 
 	// Send translate request to MS server
 	client := getHTTPClient()

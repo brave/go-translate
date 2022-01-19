@@ -6,13 +6,18 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
+
+	"github.com/brave/go-translate/language"
 )
 
 // RequestBody represents JSON format of Microsoft requests.
 type RequestBody struct {
-	Text string `json:"Text"`
+	From          string   `json:"from"`
+	To            string   `json:"to"`
+	Data          []string `json:"text"`
+	Platform      string   `json:"platform"`
+	TranslateMode string   `json:"translateMode"`
 }
 
 // MicrosoftResponseBody represents JSON format of Microsoft response bodies.
@@ -50,8 +55,13 @@ type MicrosoftResponseBody []struct {
 	} `json:"translations"`
 }
 
+type LnxResponseBody struct {
+	Error  string   `json:"err"`
+	Result []string `json:"result"`
+}
+
 const (
-	translateEndpoint = "/translate?api-version=3.0"
+	translateEndpoint = "/translate"
 )
 
 // ToMicrosoftRequest parses the input Google format translate request and
@@ -75,13 +85,6 @@ func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	if err != nil {
 		return nil, false, err
 	}
-	q := u.Query()
-	if from != "auto" {
-		q.Add("from", from)
-	}
-	q.Add("to", to)
-	q.Add("textType", "html")
-	u.RawQuery = q.Encode()
 
 	// Convert Google format request body into MS format request body
 	err = r.ParseForm()
@@ -90,11 +93,22 @@ func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	}
 	qVals := r.PostForm["q"]
 
-	// Set the request body
-	reqBody := make([]RequestBody, len(qVals))
-	for i, q := range qVals {
-		reqBody[i] = RequestBody{q}
+	lnx_from, err := language.ToLnxLanguageCode(from)
+	if err != nil {
+		return nil, false, errors.New("No matching lnx_from language code")
 	}
+
+	lnx_to, err := language.ToLnxLanguageCode(to)
+	if err != nil {
+		return nil, false, errors.New("No matching lnx_to language code")
+	}
+
+	var reqBody RequestBody
+	reqBody.From = lnx_from
+	reqBody.To = lnx_to
+	reqBody.Platform = "api"
+	reqBody.TranslateMode = "text" // TODO(Moritz Haller): blocked by lingvanex, change to "html"
+	reqBody.Data = qVals
 
 	body, err := json.Marshal(reqBody)
 	if err != nil {
@@ -110,7 +124,6 @@ func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	// Set request headers
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Length", strconv.FormatInt(req.ContentLength, 10))
-	req.Header.Add("Ocp-Apim-Subscription-Key", os.Getenv("MS_TRANSLATE_API_KEY"))
 	return req, from == "auto", nil
 }
 
@@ -118,27 +131,26 @@ func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool,
 // response body in Google format.
 func ToGoogleResponseBody(body []byte, isAuto bool) ([]byte, error) {
 	// Parse MS response body
-	var msResp MicrosoftResponseBody
+	var msResp LnxResponseBody
 	err := json.Unmarshal(body, &msResp)
 	if err != nil {
 		return nil, err
 	}
 
-	// Source language is specified, google result format: ["aa", "bb", ...]
-	if !isAuto {
-		body := make([]string, len(msResp))
-		for i, responseBody := range msResp {
-			body[i] = responseBody.Translations[0].Text
-		}
-		return json.Marshal(body)
-	}
+	return json.Marshal(msResp.Result)
 
-	// Source language is auto detected,
-	// google result format: [["aa", "from_len_a"], ["bb", "from_len_b"], ...]
-	bodyAuto := make([][2]string, len(msResp))
-	for i, responseBody := range msResp {
-		bodyAuto[i][0] = responseBody.Translations[0].Text
-		bodyAuto[i][1] = responseBody.DetectedLang.Language
-	}
-	return json.Marshal(bodyAuto)
+	// if !isAuto {
+	// 	body := make([]string, len(msResp))
+	// 	for i, responseBody := range msResp {
+	// 		body[i] = responseBody.Translations[0].Text
+	// 	}
+	// 	return json.Marshal(body)
+	// }
+
+	// bodyAuto := make([][2]string, len(msResp))
+	// for i, responseBody := range msResp {
+	// 	bodyAuto[i][0] = responseBody.Translations[0].Text
+	// 	bodyAuto[i][1] = responseBody.DetectedLang.Language
+	// }
+	// return json.Marshal(bodyAuto)
 }

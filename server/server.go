@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/brave-intl/bat-go/middleware"
@@ -49,13 +52,51 @@ func setupRouter(ctx context.Context, logger *logrus.Logger) (context.Context, *
 func StartServer() {
 	serverCtx, logger := setupLogger(context.Background())
 	logger.WithFields(logrus.Fields{"prefix": "main"}).Info("Starting server")
+
+	go func() {
+		// setup metrics on another non-public port 9090
+		err := http.ListenAndServe(":9090", middleware.Metrics())
+		if err != nil {
+			raven.CaptureErrorAndWait(err, nil)
+			panic(fmt.Sprintf("metrics HTTP server start failed: %s", err.Error()))
+		}
+	}()
+
 	serverCtx, r := setupRouter(serverCtx, logger)
 	port := ":8195"
 	fmt.Printf("Starting server: http://localhost%s", port)
+
+	workDir, _ := os.Getwd()
+	filesDir := http.Dir(filepath.Join(workDir, "assets"))
+	FileServer(r, "/static", filesDir)
+
 	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
-	err := srv.ListenAndServe()
+	// err := srv.ListenAndServe()
+	err := srv.ListenAndServeTLS("/Users/moritzhaller/localhost.pem", "/Users/moritzhaller/localhost-key.pem")
 	if err != nil {
 		raven.CaptureErrorAndWait(err, nil)
 		log.Panic(err)
 	}
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		fs.ServeHTTP(w, r)
+	})
 }
