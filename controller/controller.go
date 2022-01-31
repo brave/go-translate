@@ -5,8 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"time"
 
@@ -46,14 +44,6 @@ func TranslateRouter() chi.Router {
 	r.Post("/translate", Translate)
 	r.Options("/translate", HandleCorsPreflight)
 	r.Get("/language", GetLanguageList)
-
-	r.Get("/translate_a/element.js", GetTranslateScript)
-	r.Get("/element/*/js/element/element_main.js", GetTranslateScript)
-	r.Get("/translate_static/js/element/main.js", GetTranslateScript)
-
-	r.Get("/translate_static/css/translateelement.css", GetGoogleTranslateResource)
-	r.Get("/images/branding/product/1x/translate_24dp.png", GetGStaticResource)
-	r.Get("/images/branding/product/2x/translate_24dp.png", GetGStaticResource)
 
 	return r
 }
@@ -180,33 +170,4 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("Error writing response body for translate requests: %v", err)
 	}
-}
-
-// GetTranslateScript use a reverse proxy to forward handle translate script
-// requests to brave's proxy server. We're not replying a HTTP redirect
-// directly because the Originin the response header will be cleared to null
-// instead of having the value "https://translate.googleapis.com" when the
-// client follows the redirect to a cross origin, so we would violate the CORS
-// policy when the client try to access other resources from google server.
-func GetTranslateScript(w http.ResponseWriter, r *http.Request) {
-	target, _ := url.Parse(GoogleTranslateServerProxy)
-	// Use a custom director so req.Host will be changed.
-	director := func(req *http.Request) {
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
-		req.Host = target.Host
-	}
-	proxy := &httputil.ReverseProxy{Director: director}
-	proxy.ServeHTTP(w, r)
-}
-
-// GetGoogleTranslateResource redirect the resource requests from google
-// translate server to brave's proxy.
-func GetGoogleTranslateResource(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, GoogleTranslateServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
-}
-
-// GetGStaticResource redirect the requests from gstatic to brave's proxy.
-func GetGStaticResource(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, GStaticServerProxy+r.URL.Path, http.StatusTemporaryRedirect)
 }
