@@ -6,16 +6,21 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
+
+	"github.com/brave/go-translate/language"
 )
 
-// RequestBody represents JSON format of Microsoft requests.
+// RequestBody represents JSON format of Lingvanex requests.
 type RequestBody struct {
-	Text string `json:"Text"`
+	From          string   `json:"from"`
+	To            string   `json:"to"`
+	Data          []string `json:"text"`
+	Platform      string   `json:"platform"`
+	TranslateMode string   `json:"translateMode"`
 }
 
-// MicrosoftResponseBody represents JSON format of Microsoft response bodies.
+// LingvanexResponseBody represents JSON format of Lingvanex response bodies.
 // Translations's size is limited to 1 since multiple translations is not
 // compatible with Google.
 // Format with auto-detect source language:
@@ -41,7 +46,7 @@ type RequestBody struct {
 //
 // score and to are not saved in this struct because we don't need them to
 // convert to a google format response.
-type MicrosoftResponseBody []struct {
+type LingvanexResponseBody []struct {
 	DetectedLang struct {
 		Language string `json:"language"`
 	} `json:"detectedLanguage,omitempty"`
@@ -50,14 +55,15 @@ type MicrosoftResponseBody []struct {
 	} `json:"translations"`
 }
 
-const (
-	translateEndpoint = "/translate?api-version=3.0"
-)
+type LnxResponseBody struct {
+	Error  string   `json:"err"`
+	Result []string `json:"result"`
+}
 
-// ToMicrosoftRequest parses the input Google format translate request and
-// return a corresponding Microsoft format request.
-func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool, error) {
-	msURL := serverURL + translateEndpoint
+// ToLingvanexRequest parses the input Google format translate request and
+// return a corresponding Lingvanex format request.
+func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool, error) {
+	lnxURL := serverURL
 	// Parse google format query parameters
 	slVals := r.URL.Query()["sl"]
 	if len(slVals) != 1 {
@@ -70,31 +76,35 @@ func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	from := slVals[0]
 	to := tlVals[0]
 
-	// Set MS format query parameters
-	u, err := url.Parse(msURL)
+	// Set Lnx format query parameters
+	u, err := url.Parse(lnxURL)
 	if err != nil {
 		return nil, false, err
 	}
-	q := u.Query()
-	if from != "auto" {
-		q.Add("from", from)
-	}
-	q.Add("to", to)
-	q.Add("textType", "html")
-	u.RawQuery = q.Encode()
 
-	// Convert Google format request body into MS format request body
+	// Convert Google format request body into Lnx format request body
 	err = r.ParseForm()
 	if err != nil {
 		return nil, false, err
 	}
 	qVals := r.PostForm["q"]
 
-	// Set the request body
-	reqBody := make([]RequestBody, len(qVals))
-	for i, q := range qVals {
-		reqBody[i] = RequestBody{q}
+	lnx_from, err := language.ToLnxLanguageCode(from)
+	if err != nil {
+		return nil, false, errors.New("No matching lnx_from language code")
 	}
+
+	lnx_to, err := language.ToLnxLanguageCode(to)
+	if err != nil {
+		return nil, false, errors.New("No matching lnx_to language code")
+	}
+
+	var reqBody RequestBody
+	reqBody.From = lnx_from
+	reqBody.To = lnx_to
+	reqBody.Platform = "api"
+	reqBody.TranslateMode = "html"
+	reqBody.Data = qVals
 
 	body, err := json.Marshal(reqBody)
 	if err != nil {
@@ -110,35 +120,18 @@ func ToMicrosoftRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	// Set request headers
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Length", strconv.FormatInt(req.ContentLength, 10))
-	req.Header.Add("Ocp-Apim-Subscription-Key", os.Getenv("MS_TRANSLATE_API_KEY"))
 	return req, from == "auto", nil
 }
 
-// ToGoogleResponseBody parses the input Microsoft response and return the JSON
+// ToGoogleResponseBody parses the input Lingvanex response and return the JSON
 // response body in Google format.
 func ToGoogleResponseBody(body []byte, isAuto bool) ([]byte, error) {
-	// Parse MS response body
-	var msResp MicrosoftResponseBody
-	err := json.Unmarshal(body, &msResp)
+	// Parse Lnx response body
+	var lnxResp LnxResponseBody
+	err := json.Unmarshal(body, &lnxResp)
 	if err != nil {
 		return nil, err
 	}
 
-	// Source language is specified, google result format: ["aa", "bb", ...]
-	if !isAuto {
-		body := make([]string, len(msResp))
-		for i, responseBody := range msResp {
-			body[i] = responseBody.Translations[0].Text
-		}
-		return json.Marshal(body)
-	}
-
-	// Source language is auto detected,
-	// google result format: [["aa", "from_len_a"], ["bb", "from_len_b"], ...]
-	bodyAuto := make([][2]string, len(msResp))
-	for i, responseBody := range msResp {
-		bodyAuto[i][0] = responseBody.Translations[0].Text
-		bodyAuto[i][1] = responseBody.DetectedLang.Language
-	}
-	return json.Marshal(bodyAuto)
+	return json.Marshal(lnxResp.Result)
 }

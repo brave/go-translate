@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/brave/go-translate/language"
@@ -15,9 +16,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// MSTranslateServer specifies the remote MS translate server used by
+// LnxEndpoint specifies the remote Lnx translate server used by
 // brave-core, and it can be set to a mock server during testing.
-var MSTranslateServer = "https://api.cognitive.microsofttranslator.com"
+var LnxEndpoint = "https://api-b2b.backenster.com/b1/api/v3"
+var LnxApiKey = os.Getenv("LNX_API_KEY")
 
 // GoogleTranslateServerProxy specifies the proxy server for requesting
 // resource from google translate server, and it can be set to a mock server
@@ -32,7 +34,8 @@ const (
 	// from google gstatic server.
 	GStaticServerProxy = "https://translate-static.brave.com"
 
-	languageEndpoint = "/languages?api-version=3.0&scope=translation"
+	languagePath  = "/getLanguages?platform=api"
+	translatePath = "/translate"
 )
 
 // TranslateRouter add routers for translate requests and translate script
@@ -66,49 +69,51 @@ func getHTTPClient() *http.Client {
 	}
 }
 
-// GetLanguageList send a request to Microsoft server and convert the response
+// GetLanguageList send a request to Lingvanex server and convert the response
 // into google format and reply back to the client.
 func GetLanguageList(w http.ResponseWriter, r *http.Request) {
-	// Send a get language list request to MS
-	req, err := http.NewRequest("GET", MSTranslateServer+languageEndpoint, nil)
+	// Send a get language list request to Lnx
+	req, err := http.NewRequest("GET", LnxEndpoint+languagePath, nil)
+	req.Header.Add("Authorization", "Bearer "+LnxApiKey)
+
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error creating MS request: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error creating Lnx request: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	client := getHTTPClient()
-	msResp, err := client.Do(req)
+	lnxResp, err := client.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending request to MS server: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error sending request to Lnx server: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer func() {
-		err := msResp.Body.Close()
+		err := lnxResp.Body.Close()
 		if err != nil {
 			log.Errorf("Error closing response body stream: %v", err)
 		}
 	}()
 
 	// Set response header
-	w.Header().Set("Content-Type", msResp.Header["Content-Type"][0])
-	w.WriteHeader(msResp.StatusCode)
+	w.Header().Set("Content-Type", lnxResp.Header["Content-Type"][0])
+	w.WriteHeader(lnxResp.StatusCode)
 
 	// Copy resonse body if status is not OK
-	if msResp.StatusCode != http.StatusOK {
-		_, err = io.Copy(w, msResp.Body)
+	if lnxResp.StatusCode != http.StatusOK {
+		_, err = io.Copy(w, lnxResp.Body)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error copying MS response body: %v", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Error copying Lnx response body: %v", err), http.StatusInternalServerError)
 		}
 		return
 	}
 
 	// Convert to google format language list and write it back
-	msBody, err := ioutil.ReadAll(msResp.Body)
+	lnxBody, err := ioutil.ReadAll(lnxResp.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading MS response body: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error reading Lnx response body: %v", err), http.StatusInternalServerError)
 		return
 	}
-	body, err := language.ToGoogleLanguageList(msBody)
+	body, err := language.ToGoogleLanguageList(lnxBody)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error converting to google language list: %v", err), http.StatusInternalServerError)
 		return
@@ -119,57 +124,58 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Translate converts a Google format translate request into a Microsoft format
-// one which will be send to the Microsoft server, and write a Google format
+// Translate converts a Google format translate request into a Lingvanex format
+// one which will be send to the Lingvanex server, and write a Google format
 // response back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
-	// Convert google format request to MS format
-	req, isAuto, err := translate.ToMicrosoftRequest(r, MSTranslateServer)
+	req, isAuto, err := translate.ToLingvanexRequest(r, LnxEndpoint+translatePath)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to MS request: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	// Send translate request to MS server
+	req.Header.Add("Authorization", "Bearer "+LnxApiKey)
+
+	// Send translate request to Lnx server
 	client := getHTTPClient()
-	msResp, err := client.Do(req)
+	lnxResp, err := client.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending request to MS server: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error sending request to LnxEndpoint: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer func() {
-		err := msResp.Body.Close()
+		err := lnxResp.Body.Close()
 		if err != nil {
 			log.Errorf("Error closing response body stream: %v", err)
 		}
 	}()
 
 	// Set Header
-	w.Header().Set("Content-Type", msResp.Header["Content-Type"][0])
+	w.Header().Set("Content-Type", lnxResp.Header["Content-Type"][0])
 	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
 
 	// Copy resonse body if status is not OK
-	if msResp.StatusCode != http.StatusOK {
-		w.WriteHeader(msResp.StatusCode)
-		_, err = io.Copy(w, msResp.Body)
+	if lnxResp.StatusCode != http.StatusOK {
+		w.WriteHeader(lnxResp.StatusCode)
+		_, err = io.Copy(w, lnxResp.Body)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Error copying MS response body: %v", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Error copying LnxEndpoint response body: %v", err), http.StatusInternalServerError)
 		}
 		return
 	}
 
 	// Set google format response body
-	msBody, err := ioutil.ReadAll(msResp.Body)
+	lnxBody, err := ioutil.ReadAll(lnxResp.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading MS response body: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error reading LnxEndpoint response body: %v", err), http.StatusInternalServerError)
 		return
 	}
-	body, err := translate.ToGoogleResponseBody(msBody, isAuto)
+	body, err := translate.ToGoogleResponseBody(lnxBody, isAuto)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error converting to google response body: %v", err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(msResp.StatusCode)
+	w.WriteHeader(lnxResp.StatusCode)
 	_, err = w.Write(body)
 	if err != nil {
 		log.Errorf("Error writing response body for translate requests: %v", err)
