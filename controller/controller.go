@@ -16,7 +16,7 @@ import (
 
 // LnxEndpoint specifies the remote Lnx translate server used by
 // brave-core, and it can be set to a mock server during testing.
-var LnxEndpoint = "https://api-b2b.backenster.com/b1/api/v3"
+var LnxEndpoint = "https://translate-lnx.bravesoftware.com/api"
 var LnxApiKey = os.Getenv("LNX_API_KEY")
 
 // GoogleTranslateServerProxy specifies the proxy server for requesting
@@ -32,7 +32,7 @@ const (
 	// from google gstatic server.
 	GStaticServerProxy = "https://translate-static.brave.com"
 
-	languagePath  = "/getLanguages?platform=api"
+	languagePath  = "/get-languages"
 	translatePath = "/translate"
 )
 

@@ -13,10 +13,9 @@ import (
 
 // RequestBody represents JSON format of Lingvanex requests.
 type RequestBody struct {
-	From          string   `json:"from"`
-	To            string   `json:"to"`
-	Data          []string `json:"text"`
-	Platform      string   `json:"platform"`
+	From          string   `json:"source"`
+	To            string   `json:"target"`
+	Data          []string `json:"q"`
 	TranslateMode string   `json:"translateMode"`
 }
 
@@ -46,18 +45,9 @@ type RequestBody struct {
 //
 // score and to are not saved in this struct because we don't need them to
 // convert to a google format response.
-type LingvanexResponseBody []struct {
-	DetectedLang struct {
-		Language string `json:"language"`
-	} `json:"detectedLanguage,omitempty"`
-	Translations [1]struct {
-		Text string `json:"text"`
-	} `json:"translations"`
-}
-
-type LnxResponseBody struct {
-	Error  string   `json:"err"`
-	Result []string `json:"result"`
+type LingvanexResponseBody struct {
+	SourceText     []string `json:"sourceText"`
+	TranslatedText []string `json:"translatedText"`
 }
 
 // ToLingvanexRequest parses the input Google format translate request and
@@ -102,7 +92,6 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	var reqBody RequestBody
 	reqBody.From = lnx_from
 	reqBody.To = lnx_to
-	reqBody.Platform = "api"
 	reqBody.TranslateMode = "html"
 	reqBody.Data = qVals
 
@@ -127,11 +116,11 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 // response body in Google format.
 func ToGoogleResponseBody(body []byte, isAuto bool) ([]byte, error) {
 	// Parse Lnx response body
-	var lnxResp LnxResponseBody
+	var lnxResp LingvanexResponseBody
 	err := json.Unmarshal(body, &lnxResp)
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(lnxResp.Result)
+	return json.Marshal(lnxResp.TranslatedText)
 }
