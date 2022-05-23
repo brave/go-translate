@@ -18,23 +18,8 @@ import (
 // brave-core, and it can be set to a mock server during testing.
 var LnxEndpoint = os.Getenv("LNX_HOST")
 var LnxApiKey = os.Getenv("LNX_API_KEY")
-
-// GoogleTranslateServerProxy specifies the proxy server for requesting
-// resource from google translate server, and it can be set to a mock server
-// during testing.
-var GoogleTranslateServerProxy = "https://translate.brave.com"
-
-const (
-	// GoogleTranslateServer specifies the remote google translate server.
-	GoogleTranslateServer = "https://translate.googleapis.com"
-
-	// GStaticServerProxy specifies the proxy server for requesting resource
-	// from google gstatic server.
-	GStaticServerProxy = "https://translate-static.brave.com"
-
-	languagePath  = "/get-languages"
-	translatePath = "/translate"
-)
+var languagePath = "/get-languages"
+var translatePath = "/translate"
 
 // TranslateRouter add routers for translate requests and translate script
 // requests.
