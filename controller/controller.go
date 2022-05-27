@@ -35,6 +35,8 @@ func TranslateRouter() chi.Router {
 
 func HandleCorsPreflight(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET")
+	w.Header().Set("Access-Control-Allow-Headers", "braveservicekey")
 	w.WriteHeader(http.StatusOK)
 }
 
