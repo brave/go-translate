@@ -3,7 +3,6 @@
  Copyright The Closure Library Authors.
  SPDX-License-Identifier: Apache-2.0
 */
-console.log('1')
 var a = "Translate",
     d = this || self;
 function f(b, n) {
