@@ -105,6 +105,8 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 // one which will be send to the Lingvanex server, and write a Google format
 // response back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
+
 	req, isAuto, err := translate.ToLingvanexRequest(r, LnxEndpoint+translatePath)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
