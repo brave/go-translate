@@ -28,7 +28,7 @@ func TranslateRouter() chi.Router {
 
 	r.Post("/translate", Translate)
 	r.Options("/translate", HandleCorsPreflight)
-	r.Get("/language", GetLanguageList)
+	r.Get("/translate_a/l", GetLanguageList)
 
 	return r
 }
