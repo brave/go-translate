@@ -27,17 +27,9 @@ func TranslateRouter() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/translate", Translate)
-	r.Options("/translate", HandleCorsPreflight)
 	r.Get("/translate_a/l", GetLanguageList)
 
 	return r
-}
-
-func HandleCorsPreflight(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET")
-	w.Header().Set("Access-Control-Allow-Headers", "braveservicekey")
-	w.WriteHeader(http.StatusOK)
 }
 
 func getHTTPClient() *http.Client {

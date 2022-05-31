@@ -83,16 +83,7 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET")
-		w.Header().Set("Access-Control-Allow-Headers", "braveservicekey")
 
 		fs.ServeHTTP(w, r)
-	})
-
-	r.Options(path, func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET")
-		w.Header().Set("Access-Control-Allow-Headers", "braveservicekey")
-		w.WriteHeader(http.StatusOK)
 	})
 }
