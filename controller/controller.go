@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/brave/go-translate/language"
@@ -27,24 +26,10 @@ var translatePath = "/translate"
 func TranslateRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/translate_a/t", Translate)
+	r.Post("/translate", Translate)
 	r.Get("/translate_a/l", GetLanguageList)
 
-	r.Get("/translate_a/element.js", ServeStaticFile)
-	r.Get("/translate_static/js/element/main.js", ServeStaticFile)
-	r.Get("/translate_static/css/translateelement.css", ServeStaticFile)
-
 	return r
-}
-
-func ServeStaticFile(w http.ResponseWriter, r *http.Request) {
-	workDir, _ := os.Getwd()
-	filesDir := http.Dir(filepath.Join(workDir, "assets"))
-	fs := http.FileServer(filesDir)
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	fs.ServeHTTP(w, r)
 }
 
 func getHTTPClient() *http.Client {
