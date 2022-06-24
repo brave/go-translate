@@ -31,8 +31,8 @@ func TranslateRouter() chi.Router {
 	r.Get("/translate_a/l", GetLanguageList)
 
 	r.Get("/static/v1/element.js", ServeStaticFile)
-	r.Get("/static/v1/main.js", ServeStaticFile)
-	r.Get("/static/v1/translateelement.css", ServeStaticFile)
+	r.Get("/static/v1/js/element/main.js", ServeStaticFile)
+	r.Get("/static/v1/css/translateelement.css", ServeStaticFile)
 
 	return r
 }
