@@ -43,6 +43,10 @@ func ServeStaticFile(w http.ResponseWriter, r *http.Request) {
 	fs := http.FileServer(filesDir)
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Security-Policy", "trusted-types")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	w.Header().Set("Cache-Control", "max-age=86400")
 
 	fs.ServeHTTP(w, r)
 }
