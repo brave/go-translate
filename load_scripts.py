@@ -4,7 +4,7 @@ import os
 import subprocess
 
 SCRIPT_VERSION = 'v1'
-OUT_DIR = f'out/static/{SCRIPT_VERSION}'
+OUT_DIR = f'assets/static/{SCRIPT_VERSION}'
 
 GOOGLE_API_HOST = 'https://translate.googleapis.com/'
 GOOGLE_EXTRA_HEADER = 'Google-Translate-Element-Mode: library'
