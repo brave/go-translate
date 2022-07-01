@@ -13,7 +13,7 @@ import (
 
 // RequestBody represents JSON format of Lingvanex requests.
 type RequestBody struct {
-	From          string   `json:"source"`
+	From          string   `json:"source,omitempty"`
 	To            string   `json:"target"`
 	Data          []string `json:"q"`
 	TranslateMode string   `json:"translateMode"`
@@ -90,7 +90,9 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	}
 
 	var reqBody RequestBody
-	reqBody.From = lnx_from
+	if lnx_from != "auto" {
+		reqBody.From = lnx_from
+	}
 	reqBody.To = lnx_to
 	reqBody.TranslateMode = "html"
 	reqBody.Data = qVals
