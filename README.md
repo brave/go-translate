@@ -1,17 +1,25 @@
-# Translation relay server for brave
+# Go-Translate
 
-`go-translate` implements a translation relay server for use in brave-core written in Go.
+Go-Translate implements a translation relay server for Brave Translate. Requests are sent from Brave browser through a proxy network to Go-Translate, and forwarded to the remote Translation Service.
 
-The intended audience for this server is all users of brave-core.
+```
+Browser/Proxy (Source) <=> Go-Translate <=> Translation Service (Target)
+```
 
-The translation relay server supports 2 endpoints
+Go-Translate relays the following requests:
 
-1) The `POST /translate` endpoint processes translate requests in Google format, sends corresponding requests in Microsoft format to Microsoft translate server, then returns responses in Google format back to the brave-core client.
+```
+(Source) GET <go-translate>/translate_a/l => GET <target>/get-languages
+(Source) POST <go-translate>/translate_a/t => POST <target>/translate
+```
 
-2) The `GET /language` endpoint processes requests of getting the support language list in Google format, sends corresponding requests in Microsoft format to Microsoft translate server, then returns responses in Google format back to the brave-core client.
+Additionally Go-Translate serves static files necessary for page translation:
 
-There are also a few static resources requested during in-page translation will be handled by go-translate and will be proxied through a brave to avoid introducing direct connection to any Google server.
-
+```
+(Source) GET <go-translate>/static/v1/element.js
+(Source) GET <go-translate>/static/v1/js/element/main.js
+(Source) GET <go-translate>/static/v1/css/translateelement.css
+```
 
 ## Dependencies
 
@@ -21,20 +29,7 @@ There are also a few static resources requested during in-page translation will 
 
 ## Setup
 
-```
-git clone git@github.com:brave/go-translate.git
-cd ~/path-to/go-translate
-make build
-```
-
-## Run lint:
-
-`make lint`
-
-## Run tests:
-
-`make test`
-
-## Build and run go-translate:
-
-`make build`
+- Clone `git clone git@github.com:brave/go-translate.git`
+- Build and run: `make build`
+- Run linter: `make lint`
+- Run tests: `make test`

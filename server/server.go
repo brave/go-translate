@@ -39,19 +39,18 @@ func setupRouter(ctx context.Context, logger *logrus.Logger) (context.Context, *
 		r.Use(middleware.RequestLogger(logger))
 	}
 
-	r.Mount("/", controller.TranslateRouter())
+	r.Mount("/", controller.Router())
 	r.Get("/metrics", middleware.Metrics())
 
 	return ctx, r
 }
 
-// StartServer starts the translate proxy server on port 8195
 func StartServer() {
 	serverCtx, logger := setupLogger(context.Background())
 	logger.WithFields(logrus.Fields{"prefix": "main"}).Info("Starting server")
 	serverCtx, r := setupRouter(serverCtx, logger)
 	port := ":8195"
-	fmt.Printf("Starting server: http://localhost%s", port)
+	fmt.Printf("Starting server on port %s", port)
 	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
 	err := srv.ListenAndServe()
 	if err != nil {
