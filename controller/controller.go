@@ -54,7 +54,7 @@ func ServeStaticFile(w http.ResponseWriter, r *http.Request) {
 
 func getHTTPClient() *http.Client {
 	return &http.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 60,
 	}
 }
 
