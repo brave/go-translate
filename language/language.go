@@ -5,6 +5,167 @@ import (
 	"errors"
 )
 
+var ChromiumLanguageList = []string{
+	"af",
+	"am",
+	"ar",
+	"az",
+	"be",
+	"bg",
+	"bn",
+	"bs",
+	"ca",
+	"ceb",
+	"co",
+	"cs",
+	"cy",
+	"da",
+	"de",
+	"el",
+	"en",
+	"eo",
+	"es",
+	"et",
+	"eu",
+	"fa",
+	"fi",
+	"fr",
+	"fy",
+	"ga",
+	"gd",
+	"gl",
+	"gu",
+	"ha",
+	"haw",
+	"hi",
+	"hmn",
+	"hr",
+	"ht",
+	"hu",
+	"hy",
+	"id",
+	"ig",
+	"is",
+	"it",
+	"iw",
+	"ja",
+	"jw",
+	"ka",
+	"kk",
+	"km",
+	"kn",
+	"ko",
+	"ku",
+	"ky",
+	"la",
+	"lb",
+	"lo",
+	"lt",
+	"lv",
+	"mg",
+	"mi",
+	"mk",
+	"ml",
+	"mn",
+	"mr",
+	"ms",
+	"mt",
+	"my",
+	"ne",
+	"nl",
+	"no",
+	"ny",
+	"or",
+	"pa",
+	"pl",
+	"ps",
+	"pt",
+	"ro",
+	"ru",
+	"rw",
+	"sd",
+	"si",
+	"sk",
+	"sl",
+	"sm",
+	"sn",
+	"so",
+	"sq",
+	"sr",
+	"st",
+	"su",
+	"sv",
+	"sw",
+	"ta",
+	"te",
+	"tg",
+	"th",
+	"tk",
+	"tl",
+	"tr",
+	"tt",
+	"ug",
+	"uk",
+	"ur",
+	"uz",
+	"vi",
+	"xh",
+	"yi",
+	"yo",
+	"zh-CN",
+	"zh-TW",
+	"zu",
+}
+
+var GoogleToLnxLangExclusions = map[string]string{
+	"zh-CN": "zh-Hans",
+	"zh-TW": "zh-Hant",
+	"sr":    "sr-Cyrl",
+	"iw":    "he",
+	"jw":    "jv",
+}
+
+func MakeLnxToGoogleLangMapping() map[string]string {
+	result := make(map[string]string)
+	for _, glang := range ChromiumLanguageList {
+		if lnx_lang, ok := GoogleToLnxLangExclusions[glang]; ok {
+			result[lnx_lang] = glang
+		} else {
+			result[glang] = glang
+		}
+	}
+	return result
+}
+
+func MakeGoogleToLnxLangMapping() map[string]string {
+	result := make(map[string]string)
+	for _, glang := range ChromiumLanguageList {
+		if lnx_lang, ok := GoogleToLnxLangExclusions[glang]; ok {
+			result[glang] = lnx_lang
+		} else {
+			result[glang] = glang
+		}
+	}
+	return result
+}
+
+var GoogleToLnxLangMapping = MakeGoogleToLnxLangMapping()
+var LnxToGoogleLangMapping = MakeLnxToGoogleLangMapping()
+
+func ToGoogleLanguageCode(lnxLangCode string) (string, error) {
+	if val, ok := LnxToGoogleLangMapping[lnxLangCode]; ok {
+		return val, nil
+	}
+	return "", errors.New("Invalid language code " + lnxLangCode)
+}
+
+func ToLnxLanguageCode(gLangCode string) (string, error) {
+	if val, ok := GoogleToLnxLangMapping[gLangCode]; ok {
+		return val, nil
+	}
+	return "", errors.New("Invalid language code " + gLangCode)
+}
+
 // Language represents the format of language in Lingvanex language list
 // Note that nativeName and dir are not used in this package since Google
 // doesn't have them.
@@ -40,26 +201,12 @@ func ToGoogleLanguageList(body []byte) ([]byte, error) {
 	googleLangList.Sl = make(map[string]string, len(lnxLangList))
 	googleLangList.Tl = make(map[string]string, len(lnxLangList))
 	for _, lang := range lnxLangList {
-		googleLangList.Sl[lang.IsoCode] = lang.Name
-		googleLangList.Tl[lang.IsoCode] = lang.Name
+		val, err := ToGoogleLanguageCode(lang.IsoCode)
+		if err != nil {
+			continue
+		}
+		googleLangList.Sl[val] = lang.Name
+		googleLangList.Tl[val] = lang.Name
 	}
 	return json.Marshal(googleLangList)
-}
-
-func ToLnxLanguageCode(gLangCode string) (string, error) {
-	// Also deal with duplicate mappings for ar, en, es, fr, pt
-	supportedLangList := []byte(`[{"code_alpha_1":"auto","codeName":"Auto","rtl":false},{"code_alpha_1":"en","codeName":"English","rtl":false},{"code_alpha_1":"fr","codeName":"French","rtl":false},{"code_alpha_1":"pl","codeName":"Polish","rtl":false},{"code_alpha_1":"zh-Hans","codeName":"Chinese (Simplified)","rtl":false},{"code_alpha_1":"vi","codeName":"Vietnamese","rtl":false},{"code_alpha_1":"pt","codeName":"Portuguese","rtl":false},{"code_alpha_1":"nl","codeName":"Dutch","rtl":false},{"code_alpha_1":"de","codeName":"German","rtl":false},{"code_alpha_1":"ja","codeName":"Japanese","rtl":false},{"code_alpha_1":"es","codeName":"Spanish","rtl":false},{"code_alpha_1":"ro","codeName":"Romanian","rtl":false},{"code_alpha_1":"tr","codeName":"Turkish","rtl":false},{"code_alpha_1":"it","codeName":"Italian","rtl":false},{"code_alpha_1":"hi","codeName":"Hindi","rtl":false},{"code_alpha_1":"ru","codeName":"Russian","rtl":false}]`)
-	langs := make([]Language, 0)
-	err := json.Unmarshal(supportedLangList, &langs)
-	if err != nil {
-		return "", err
-	}
-
-	for _, v := range langs {
-		if v.IsoCode == gLangCode {
-			return v.IsoCode, nil
-		}
-	}
-
-	return "", errors.New("No matching Lnx Language code")
 }
