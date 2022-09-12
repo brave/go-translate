@@ -47,7 +47,7 @@ make build
 `openssl ecparam -genkey -name secp384r1 -out server.key`
 `openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650`
 
-- Replace `err := srv.ListenAndServe()` to `err := srv.ListenAndServeTLS("server.crt", "server.key")` in `server/server.go`;
+- Replace `err := srv.ListenAndServe()` with `err := srv.ListenAndServeTLS("server.crt", "server.key")` in `server/server.go`;
 
 - Set LNX_HOST (company VPN should be enabled):
   `export LNX_HOST=http://translate-lnx-dev-a4b82554457afe1c.elb.us-west-2.amazonaws.com:8080/api`
