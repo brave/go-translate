@@ -61,4 +61,4 @@ make build
 
 - Disable Shield on the tested sites (or globally), it cuts requests to localhost. `405 OPTIONS` errors also can be ignored;
 
-- If you have troubles check you can reach https://127.0.0.1:8195/static/v1/element.js in the tested browser.
+- If you have troubles check if you can reach https://127.0.0.1:8195/static/v1/element.js in the tested browser.
