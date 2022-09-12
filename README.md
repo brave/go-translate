@@ -2,7 +2,7 @@
 
 `go-translate` implements a translation server for use in brave-core written in Go.
 It works on top of brave-hosted [Lingvanex On-premise Translation Server](https://lingvanex.com/translationserver/). It gets the requests from browsers in Chromium format,
-rewrite them to Lingvanex format, process requests and returns the result back to Chromium format.
+rewrites them to Lingvanex format, processes the requests and returns the result back in Chromium format.
 
 The audience for this server is all desktop/android brave users.
 
