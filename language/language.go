@@ -149,18 +149,22 @@ func MakeGoogleToLnxLangMapping() map[string]string {
 	return result
 }
 
-var GoogleToLnxLangMapping = MakeGoogleToLnxLangMapping()
-var LnxToGoogleLangMapping = MakeLnxToGoogleLangMapping()
+var googleToLnxLangMapping map[string]string
+var lnxToGoogleLangMapping map[string]string
 
 func ToGoogleLanguageCode(lnxLangCode string) (string, error) {
-	if val, ok := LnxToGoogleLangMapping[lnxLangCode]; ok {
+	if val, ok := lnxToGoogleLangMapping[lnxLangCode]; ok {
 		return val, nil
 	}
 	return "", errors.New("Invalid language code " + lnxLangCode)
 }
 
 func ToLnxLanguageCode(gLangCode string) (string, error) {
-	if val, ok := GoogleToLnxLangMapping[gLangCode]; ok {
+	if len(googleToLnxLangMapping) == 0 {
+		return "", errors.New("uninitialized map")
+	}
+
+	if val, ok := googleToLnxLangMapping[gLangCode]; ok {
 		return val, nil
 	}
 	return "", errors.New("Invalid language code " + gLangCode)
@@ -209,4 +213,9 @@ func ToGoogleLanguageList(body []byte) ([]byte, error) {
 		googleLangList.Tl[val] = lang.Name
 	}
 	return json.Marshal(googleLangList)
+}
+
+func init() {
+	googleToLnxLangMapping = MakeGoogleToLnxLangMapping()
+	lnxToGoogleLangMapping = MakeLnxToGoogleLangMapping()
 }
