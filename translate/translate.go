@@ -8,7 +8,23 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+
 	"github.com/brave/go-translate/language"
+)
+
+var (
+	charsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "translate_processed_chars_total",
+		Help: "The total number of characters processed for translation",
+	})
+	reqsProcessed = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "translate_processed_requests_total",
+		Help: "The total number of requests processed for translation by language",
+	},
+		[]string{"to_lang", "from_lang"},
+	)
 )
 
 // RequestBody represents JSON format of Lingvanex requests.
@@ -66,6 +82,11 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	from := slVals[0]
 	to := tlVals[0]
 
+	reqsProcessed.With(prometheus.Labels{
+		"from_lang": from,
+		"to_lang":   to,
+	}).Inc()
+
 	// Set Lnx format query parameters
 	u, err := url.Parse(lnxURL)
 	if err != nil {
@@ -78,6 +99,8 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 		return nil, false, err
 	}
 	qVals := r.PostForm["q"]
+
+	charsProcessed.Add(float64(len(qVals)))
 
 	lnxTo, err := language.ToLnxLanguageCode(to)
 	if err != nil {
