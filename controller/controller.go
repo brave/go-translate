@@ -18,7 +18,7 @@ import (
 // LnxEndpoint specifies the remote Lnx translate server used by
 // brave-core, and it can be set to a mock server during testing.
 var LnxEndpoint = os.Getenv("LNX_HOST")
-var LnxApiKey = os.Getenv("LNX_API_KEY")
+var LnxAPIKey = os.Getenv("LNX_API_KEY")
 var languagePath = "/get-languages"
 var translatePath = "/translate"
 
@@ -63,7 +63,7 @@ func getHTTPClient() *http.Client {
 func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	// Send a get language list request to Lnx
 	req, err := http.NewRequest("GET", LnxEndpoint+languagePath, nil)
-	req.Header.Add("Authorization", "Bearer "+LnxApiKey)
+	req.Header.Add("Authorization", "Bearer "+LnxAPIKey)
 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error creating Lnx request: %v", err), http.StatusInternalServerError)
@@ -125,7 +125,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Header.Add("Authorization", "Bearer "+LnxApiKey)
+	req.Header.Add("Authorization", "Bearer "+LnxAPIKey)
 
 	// Send translate request to Lnx server
 	client := getHTTPClient()

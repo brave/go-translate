@@ -79,20 +79,20 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	}
 	qVals := r.PostForm["q"]
 
-	lnx_to, err := language.ToLnxLanguageCode(to)
+	lnxTo, err := language.ToLnxLanguageCode(to)
 	if err != nil {
-		return nil, false, errors.New("No matching lnx_to language code:" + err.Error())
+		return nil, false, errors.New("No matching lnxTo language code:" + err.Error())
 	}
 
 	var reqBody RequestBody
 	if from != "auto" {
-		lnx_from, err := language.ToLnxLanguageCode(from)
+		lnxFrom, err := language.ToLnxLanguageCode(from)
 		if err != nil {
-			return nil, false, errors.New("No matching lnx_from language code:" + err.Error())
+			return nil, false, errors.New("No matching lnxFrom language code:" + err.Error())
 		}
-		reqBody.From = lnx_from
+		reqBody.From = lnxFrom
 	}
-	reqBody.To = lnx_to
+	reqBody.To = lnxTo
 	reqBody.TranslateMode = "html"
 	reqBody.Data = qVals
 
