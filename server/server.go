@@ -46,10 +46,21 @@ func StartServer() {
 	serverCtx, r := setupRouter(serverCtx, logger)
 	port := ":8195"
 
+	go func() {
+		logger.Info().
+			Str("port", ":9090").
+			Msg("Starting metrics server")
+
+		err := http.ListenAndServe(":9090", middleware.Metrics())
+		if err != nil {
+			sentry.CaptureException(err)
+			logger.Panic().Err(err).Msg("metrics HTTP server start failed!")
+		}
+	}()
+
 	logger.Info().
-		Str("prefix", "main").
 		Str("port", port).
-		Msg("Starting server")
+		Msg("Starting API server")
 
 	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
 	err := srv.ListenAndServe()

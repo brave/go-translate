@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/brave-intl/bat-go/libs/logging"
+	"github.com/brave-intl/bat-go/libs/middleware"
 	"github.com/brave/go-translate/language"
 	"github.com/brave/go-translate/translate"
 	"github.com/go-chi/chi"
@@ -27,12 +28,12 @@ var translatePath = "/translate"
 func TranslateRouter() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post("/translate_a/t", Translate)
-	r.Get("/translate_a/l", GetLanguageList)
+	r.Post("/translate_a/t", middleware.InstrumentHandler("Translate", http.HandlerFunc(Translate)).ServeHTTP)
+	r.Get("/translate_a/l", middleware.InstrumentHandler("GetLanguageList", http.HandlerFunc(GetLanguageList)).ServeHTTP)
 
-	r.Get("/static/v1/element.js", ServeStaticFile)
-	r.Get("/static/v1/js/element/main.js", ServeStaticFile)
-	r.Get("/static/v1/css/translateelement.css", ServeStaticFile)
+	r.Get("/static/v1/element.js", middleware.InstrumentHandler("ServeStaticFile", http.HandlerFunc(ServeStaticFile)).ServeHTTP)
+	r.Get("/static/v1/js/element/main.js", middleware.InstrumentHandler("ServeStaticFile", http.HandlerFunc(ServeStaticFile)).ServeHTTP)
+	r.Get("/static/v1/css/translateelement.css", middleware.InstrumentHandler("ServeStaticFile", http.HandlerFunc(ServeStaticFile)).ServeHTTP)
 
 	return r
 }
