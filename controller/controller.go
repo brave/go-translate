@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/brave-intl/bat-go/libs/logging"
 	"github.com/brave/go-translate/language"
 	"github.com/brave/go-translate/translate"
 	"github.com/go-chi/chi"
-	log "github.com/sirupsen/logrus"
 )
 
 // LnxEndpoint specifies the remote Lnx translate server used by
@@ -61,6 +61,8 @@ func getHTTPClient() *http.Client {
 // GetLanguageList send a request to Lingvanex server and convert the response
 // into google format and reply back to the client.
 func GetLanguageList(w http.ResponseWriter, r *http.Request) {
+	logger := logging.FromContext(r.Context())
+
 	// Send a get language list request to Lnx
 	req, err := http.NewRequest("GET", LnxEndpoint+languagePath, nil)
 	req.Header.Add("Authorization", "Bearer "+LnxAPIKey)
@@ -79,7 +81,7 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := lnxResp.Body.Close()
 		if err != nil {
-			log.Errorf("Error closing response body stream: %v", err)
+			logger.Error().Err(err).Msg("Error closing response body stream")
 		}
 	}()
 
@@ -109,7 +111,7 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = w.Write(body)
 	if err != nil {
-		log.Errorf("Error writing response body for translate requests: %v", err)
+		logger.Error().Err(err).Msg("Error writing response body for translate requests")
 	}
 }
 
@@ -117,6 +119,8 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 // one which will be send to the Lingvanex server, and write a Google format
 // response back to the client.
 func Translate(w http.ResponseWriter, r *http.Request) {
+	logger := logging.FromContext(r.Context())
+
 	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
 
 	req, isAuto, err := translate.ToLingvanexRequest(r, LnxEndpoint+translatePath)
@@ -137,7 +141,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := lnxResp.Body.Close()
 		if err != nil {
-			log.Errorf("Error closing response body stream: %v", err)
+			logger.Error().Err(err).Msg("Error closing response body stream")
 		}
 	}()
 
@@ -169,6 +173,6 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(lnxResp.StatusCode)
 	_, err = w.Write(body)
 	if err != nil {
-		log.Errorf("Error writing response body for translate requests: %v", err)
+		logger.Error().Err(err).Msg("Error writing response body for translate requests")
 	}
 }
