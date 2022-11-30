@@ -9,7 +9,7 @@ test:
 	go test -v ./...
 
 lint:
-	golangci-lint run -E gofmt -E golint --exclude-use-default=false
+	golangci-lint run
 
 clean:
 	rm -f go-translate

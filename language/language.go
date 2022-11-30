@@ -128,8 +128,8 @@ var GoogleToLnxLangExclusions = map[string]string{
 func MakeLnxToGoogleLangMapping() map[string]string {
 	result := make(map[string]string)
 	for _, glang := range ChromiumLanguageList {
-		if lnx_lang, ok := GoogleToLnxLangExclusions[glang]; ok {
-			result[lnx_lang] = glang
+		if lnxLang, ok := GoogleToLnxLangExclusions[glang]; ok {
+			result[lnxLang] = glang
 		} else {
 			result[glang] = glang
 		}
@@ -140,8 +140,8 @@ func MakeLnxToGoogleLangMapping() map[string]string {
 func MakeGoogleToLnxLangMapping() map[string]string {
 	result := make(map[string]string)
 	for _, glang := range ChromiumLanguageList {
-		if lnx_lang, ok := GoogleToLnxLangExclusions[glang]; ok {
-			result[glang] = lnx_lang
+		if lnxLang, ok := GoogleToLnxLangExclusions[glang]; ok {
+			result[glang] = lnxLang
 		} else {
 			result[glang] = glang
 		}
