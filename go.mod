@@ -3,7 +3,7 @@ module github.com/brave/go-translate
 go 1.19
 
 require (
-	github.com/brave-intl/bat-go/libs v0.0.0-20221208214331-63d2b28f4b77
+	github.com/brave-intl/bat-go/libs v0.0.0-20221215204654-88d57e1f1bd9
 	github.com/getsentry/sentry-go v0.16.0
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/prometheus/client_golang v1.14.0

@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	appctx "github.com/brave-intl/bat-go/libs/context"
-	"github.com/brave-intl/bat-go/libs/handlers"
 	"github.com/brave-intl/bat-go/libs/logging"
 	"github.com/brave-intl/bat-go/libs/middleware"
 	sentry "github.com/getsentry/sentry-go"
@@ -19,10 +17,6 @@ import (
 )
 
 func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, *chi.Mux) {
-	buildTime := ctx.Value(appctx.BuildTimeCTXKey).(string)
-	commit := ctx.Value(appctx.CommitCTXKey).(string)
-	version := ctx.Value(appctx.VersionCTXKey).(string)
-
 	r := chi.NewRouter()
 
 	r.Use(chiware.RequestID)
@@ -40,8 +34,7 @@ func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, 
 			middleware.RequestLogger(logger))
 	}
 
-	r.Mount("/", controller.TranslateRouter())
-	r.Get("/health-check", handlers.HealthCheckHandler(version, buildTime, commit, map[string]interface{}{}))
+	r.Mount("/", controller.TranslateRouter(ctx))
 	r.Get("/metrics", middleware.Metrics())
 
 	return ctx, r
