@@ -170,6 +170,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
 
 	status := lnxResp.StatusCode
+	translateHealthy = true
 	if status >= 500 && status <= 599 {
 		translateHealthy = false
 	}
@@ -184,7 +185,6 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	translateHealthy = true
 
 	// Set google format response body
 	lnxBody, err := ioutil.ReadAll(lnxResp.Body)
