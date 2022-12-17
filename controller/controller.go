@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,6 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
+	appctx "github.com/brave-intl/bat-go/libs/context"
+	"github.com/brave-intl/bat-go/libs/handlers"
 	"github.com/brave-intl/bat-go/libs/logging"
 	"github.com/brave-intl/bat-go/libs/middleware"
 	"github.com/brave/go-translate/language"
@@ -23,10 +27,25 @@ var LnxAPIKey = os.Getenv("LNX_API_KEY")
 var languagePath = "/get-languages"
 var translatePath = "/translate"
 
+// translateHealthy indicates whether the last translate request was not a 5xx
+var translateHealthy = false
+
+func isTranslateHealthy() error {
+	if !translateHealthy {
+		return errors.New("translate is unhealthy")
+	}
+	return nil
+}
+
 // TranslateRouter add routers for translate requests and translate script
 // requests.
-func TranslateRouter() chi.Router {
+func TranslateRouter(ctx context.Context) chi.Router {
+	buildTime := ctx.Value(appctx.BuildTimeCTXKey).(string)
+	commit := ctx.Value(appctx.CommitCTXKey).(string)
+	version := ctx.Value(appctx.VersionCTXKey).(string)
+
 	r := chi.NewRouter()
+	r.Get("/live", handlers.HealthCheckHandler(version, buildTime, commit, map[string]interface{}{}, isTranslateHealthy))
 
 	r.Post("/translate_a/t", middleware.InstrumentHandler("Translate", http.HandlerFunc(Translate)).ServeHTTP)
 	r.Get("/translate_a/l", middleware.InstrumentHandler("GetLanguageList", http.HandlerFunc(GetLanguageList)).ServeHTTP)
@@ -150,8 +169,15 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", lnxResp.Header["Content-Type"][0])
 	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
 
+	status := lnxResp.StatusCode
+	translateHealthy = true
+	if status >= 500 && status <= 599 {
+		translateHealthy = false
+	}
+
 	// Copy resonse body if status is not OK
-	if lnxResp.StatusCode != http.StatusOK {
+	if status != http.StatusOK {
+
 		w.WriteHeader(lnxResp.StatusCode)
 		_, err = io.Copy(w, lnxResp.Body)
 		if err != nil {
@@ -171,7 +197,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error converting to google response body: %v", err), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(lnxResp.StatusCode)
+	w.WriteHeader(status)
 	_, err = w.Write(body)
 	if err != nil {
 		logger.Error().Err(err).Msg("Error writing response body for translate requests")

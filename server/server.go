@@ -34,15 +34,15 @@ func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, 
 			middleware.RequestLogger(logger))
 	}
 
-	r.Mount("/", controller.TranslateRouter())
+	r.Mount("/", controller.TranslateRouter(ctx))
 	r.Get("/metrics", middleware.Metrics())
 
 	return ctx, r
 }
 
 // StartServer starts the translate proxy server on port 8195
-func StartServer() {
-	serverCtx, logger := logging.SetupLogger(context.Background())
+func StartServer(ctx context.Context) {
+	serverCtx, logger := logging.SetupLogger(ctx)
 
 	serverCtx, r := setupRouter(serverCtx, logger)
 	port := ":8195"
