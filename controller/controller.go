@@ -22,7 +22,7 @@ import (
 
 // LnxEndpoint specifies the remote Lnx translate server used by
 // brave-core, and it can be set to a mock server during testing.
-var LnxEndpoint = "http://172.17.0.1:8080/api"
+var LnxEndpoint = os.Getenv("LNX_HOST")
 var LnxAPIKey = os.Getenv("LNX_API_KEY")
 var languagePath = "/get-languages"
 var translatePath = "/translate"
