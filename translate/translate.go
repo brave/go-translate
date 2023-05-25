@@ -100,7 +100,9 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	}
 	qVals := r.PostForm["q"]
 
-	charsProcessed.Add(float64(len(qVals)))
+	for _, q := range qVals {
+		charsProcessed.Add(float64(len(q)))
+	}
 
 	lnxTo, err := language.ToLnxLanguageCode(to)
 	if err != nil {
