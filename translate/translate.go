@@ -140,7 +140,7 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 
 // ToGoogleResponseBody parses the input Lingvanex response and return the JSON
 // response body in Google format.
-func ToGoogleResponseBody(body []byte, isAuto bool) ([]byte, error) {
+func ToGoogleResponseBody(body []byte, _ bool) ([]byte, error) {
 	// Parse Lnx response body
 	var lnxResp LingvanexResponseBody
 	err := json.Unmarshal(body, &lnxResp)
