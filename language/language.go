@@ -193,7 +193,7 @@ type GoogleLanguageList struct {
 
 // ToGoogleLanguageList unmarshal a Lnx language list and marshal a corresponding
 // google language list and return it.
-func ToGoogleLanguageList(body []byte) ([]byte, error) {
+func ToGoogleLanguageList(body []byte) (*GoogleLanguageList, error) {
 	var lnxLangList []Language
 	err := json.Unmarshal(body, &lnxLangList)
 	if err != nil {
@@ -212,7 +212,7 @@ func ToGoogleLanguageList(body []byte) ([]byte, error) {
 		googleLangList.Sl[val] = lang.Name
 		googleLangList.Tl[val] = lang.Name
 	}
-	return json.Marshal(googleLangList)
+	return &googleLangList, nil
 }
 
 func init() {
