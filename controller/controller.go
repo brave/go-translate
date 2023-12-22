@@ -44,7 +44,7 @@ type LnxEndpointConfiguration struct {
 }
 
 // NewLnxEndpointConfiguration returns a new endpoint configuration based on a list of endpoints, weights and list of supported languages
-func NewLnxEndpointConfiguration(ctx context.Context, endpoints []string, weights []float64, languageLists []language.GoogleLanguageList) (*LnxEndpointConfiguration, error) {
+func NewLnxEndpointConfiguration(endpoints []string, weights []float64, languageLists []language.GoogleLanguageList) (*LnxEndpointConfiguration, error) {
 	if len(endpoints) != len(weights) || len(weights) != len(languageLists) {
 		return nil, fmt.Errorf("Number of endpoints must match number of weights and number of language lists")
 	}
@@ -146,7 +146,7 @@ func TranslateRouter(ctx context.Context) (chi.Router, error) {
 	}
 
 	var err error
-	LnxEndpoint, err = NewLnxEndpointConfiguration(context.Background(), endpoints, weights, lists)
+	LnxEndpoint, err = NewLnxEndpointConfiguration(endpoints, weights, lists)
 	if err != nil {
 		return r, fmt.Errorf("Failed to setup endpoint configuration: %v", err)
 	}

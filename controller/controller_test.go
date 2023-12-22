@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,8 +9,6 @@ import (
 )
 
 func TestNewLnxEndpointConfiguration(t *testing.T) {
-	ctx := context.Background()
-
 	lists := []language.GoogleLanguageList{
 		language.GoogleLanguageList{
 			Sl: map[string]string{"en":"English", "es":"Spanish", "it": "Italian"},
@@ -25,7 +22,7 @@ func TestNewLnxEndpointConfiguration(t *testing.T) {
 	endpoints := []string{"endpoint1.com", "endpoint2.com"}
 	weights := []float64{0.5, 0.5}
 
-	conf, err := NewLnxEndpointConfiguration(ctx, endpoints, weights, lists)
+	conf, err := NewLnxEndpointConfiguration(endpoints, weights, lists)
 	assert.NoError(t, err)
 
 	assert.Equal(t, endpoints, conf.Endpoints)
@@ -43,7 +40,6 @@ func TestNewLnxEndpointConfiguration(t *testing.T) {
 }
 
 func TestLnxEndpointConfiguration_GetEndpoint(t *testing.T) {
-	ctx := context.Background()
 	lists := []language.GoogleLanguageList{
 		language.GoogleLanguageList{
 			Sl: map[string]string{"en":"English", "es":"Spanish", "it": "Italian"},
@@ -57,7 +53,7 @@ func TestLnxEndpointConfiguration_GetEndpoint(t *testing.T) {
 	endpoints := []string{"endpoint1.com", "endpoint2.com"}
 	weights := []float64{0.5, 0.5}
 
-	conf, err := NewLnxEndpointConfiguration(ctx, endpoints, weights, lists)
+	conf, err := NewLnxEndpointConfiguration(endpoints, weights, lists)
 	assert.NoError(t, err)
 
 	t.Run("random selection", func(t *testing.T) {
