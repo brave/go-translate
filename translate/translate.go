@@ -66,21 +66,28 @@ type LingvanexResponseBody struct {
 	TranslatedText []string `json:"translatedText"`
 }
 
+func GetLanguageParams(r *http.Request) (string, string, error) {
+	// Parse google format query parameters
+	slVals := r.URL.Query()["sl"]
+	if len(slVals) != 1 {
+		return "", "", errors.New("invalid query parameter format: There should be one sl parameter")
+	}
+	tlVals := r.URL.Query()["tl"]
+	if len(tlVals) != 1 {
+		return "", "", errors.New("invalid query parameter format: There should be one tl parameter")
+	}
+	return slVals[0], tlVals[0], nil
+}
+
 // ToLingvanexRequest parses the input Google format translate request and
 // return a corresponding Lingvanex format request.
 func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool, error) {
 	lnxURL := serverURL
-	// Parse google format query parameters
-	slVals := r.URL.Query()["sl"]
-	if len(slVals) != 1 {
-		return nil, false, errors.New("invalid query parameter format: There should be one sl parameter")
+
+	from, to, err := GetLanguageParams(r)
+	if err != nil {
+		return nil, false, err
 	}
-	tlVals := r.URL.Query()["tl"]
-	if len(tlVals) != 1 {
-		return nil, false, errors.New("invalid query parameter format: There should be one tl parameter")
-	}
-	from := slVals[0]
-	to := tlVals[0]
 
 	reqsProcessed.With(prometheus.Labels{
 		"from_lang": from,

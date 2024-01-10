@@ -16,7 +16,7 @@ import (
 	"github.com/brave/go-translate/controller"
 )
 
-func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, *chi.Mux) {
+func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, *chi.Mux, error) {
 	r := chi.NewRouter()
 
 	r.Use(chiware.RequestID)
@@ -33,18 +33,21 @@ func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, 
 			hlog.RequestIDHandler("req_id", "Request-Id"),
 			middleware.RequestLogger(logger))
 	}
-
-	r.Mount("/", controller.TranslateRouter())
 	r.Get("/metrics", middleware.Metrics())
+	tr, err := controller.TranslateRouter(ctx)
+	r.Mount("/", tr)
 
-	return ctx, r
+	return ctx, r, err
 }
 
 // StartServer starts the translate proxy server on port 8195
 func StartServer() {
 	serverCtx, logger := logging.SetupLogger(context.Background())
 
-	serverCtx, r := setupRouter(serverCtx, logger)
+	serverCtx, r, err := setupRouter(serverCtx, logger)
+	if err != nil {
+			logger.Panic().Err(err).Msg("service setup failed!")
+	}
 	port := ":8195"
 
 	go func() {
@@ -64,7 +67,7 @@ func StartServer() {
 		Msg("Starting API server")
 
 	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		sentry.CaptureException(err)
 		logger.Panic().Err(err)
