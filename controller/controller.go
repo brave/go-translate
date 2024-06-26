@@ -280,6 +280,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	// Copy resonse body if status is not OK
 	if lnxResp.StatusCode != http.StatusOK {
 		w.WriteHeader(lnxResp.StatusCode)
+		w.Write([]byte("LNX-ERROR:\n"))
 		_, err = io.Copy(w, lnxResp.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error copying LnxEndpoint response body: %v", err), http.StatusInternalServerError)
