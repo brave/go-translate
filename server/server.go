@@ -46,7 +46,7 @@ func StartServer() {
 
 	serverCtx, r, err := setupRouter(serverCtx, logger)
 	if err != nil {
-			logger.Panic().Err(err).Msg("service setup failed!")
+		logger.Panic().Err(err).Msg("service setup failed!")
 	}
 	port := ":8195"
 

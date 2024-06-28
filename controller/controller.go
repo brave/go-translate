@@ -38,7 +38,7 @@ type LnxEndpointConfiguration struct {
 	// A GoogleLanguageList containing source language descriptions and target language descriptions.
 	LanguagePairList language.GoogleLanguageList
 	// A nested map of endpoint weights for a language pair.
-	// The first key represents the source language, the second key represents the target language, the 
+	// The first key represents the source language, the second key represents the target language, the
 	// third key represents the endpoint URL and the value the corresponding weight for that endpoint.
 	LanguagePairWeights map[string]map[string]map[string]float64
 }
@@ -80,7 +80,7 @@ func NewLnxEndpointConfiguration(endpoints []string, weights []float64, language
 					// if not, create a new weight map for it
 					conf.LanguagePairWeights[sl][tl] = make(map[string]float64)
 				}
-				 // set the default weight for the current endpoint for the source-target language pair
+				// set the default weight for the current endpoint for the source-target language pair
 				conf.LanguagePairWeights[sl][tl][endpoint] = conf.DefaultWeights[i]
 			}
 		}
