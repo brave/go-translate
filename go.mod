@@ -7,7 +7,7 @@ require (
 	github.com/brave-intl/bat-go/libs v0.0.0-20240627124656-1a00cb8aab0d
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/getsentry/sentry-go v0.28.1
-	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/chi v4.1.3+incompatible
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/common v0.55.0 // indirect
