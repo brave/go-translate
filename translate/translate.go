@@ -39,6 +39,7 @@ type RequestBody struct {
 // Translations's size is limited to 1 since multiple translations is not
 // compatible with Google.
 // Format with auto-detect source language:
+//
 //	[
 //		{
 //			"detectedLanguage": {"language": "de", "score": 1.0},
@@ -49,7 +50,9 @@ type RequestBody struct {
 //			"translations": [{"text": "Welt", "to": "en"}]
 //		}
 //	]
+//
 // Format without auto-detect source language:
+//
 //	[
 //		{
 //			"translations": [{"text": "Hallo", "to": "en"}]
