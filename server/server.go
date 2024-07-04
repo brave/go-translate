@@ -2,19 +2,33 @@ package server
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/brave-intl/bat-go/libs/logging"
 	"github.com/brave-intl/bat-go/libs/middleware"
 	sentry "github.com/getsentry/sentry-go"
-	"github.com/go-chi/chi"
-	chiware "github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	chiware "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 
 	"github.com/brave/go-translate/controller"
 )
+
+func contextHandler(ctx context.Context, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Copy over default net/http server context keys
+		if v, ok := ctx.Value(http.ServerContextKey).(*http.Server); ok {
+			ctx = context.WithValue(ctx, http.ServerContextKey, v)
+		}
+		if v, ok := ctx.Value(http.LocalAddrContextKey).(net.Addr); ok {
+			ctx = context.WithValue(ctx, http.LocalAddrContextKey, v)
+		}
+		h.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
 func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, *chi.Mux, error) {
 	r := chi.NewRouter()
@@ -66,7 +80,7 @@ func StartServer() {
 		Str("port", port).
 		Msg("Starting API server")
 
-	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
+	srv := http.Server{Addr: port, Handler: contextHandler(serverCtx, r)}
 	err = srv.ListenAndServe()
 	if err != nil {
 		sentry.CaptureException(err)
