@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/brave-intl/bat-go/libs/logging"
 	"github.com/brave-intl/bat-go/libs/middleware"
 	sentry "github.com/getsentry/sentry-go"
-	"github.com/go-chi/chi"
-	chiware "github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	chiware "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 
@@ -66,7 +67,11 @@ func StartServer() {
 		Str("port", port).
 		Msg("Starting API server")
 
-	srv := http.Server{Addr: port, Handler: chi.ServerBaseContext(serverCtx, r)}
+	srv := http.Server{Addr: port, Handler: r,
+		BaseContext: func(_ net.Listener) context.Context {
+			return serverCtx
+		},
+	}
 	err = srv.ListenAndServe()
 	if err != nil {
 		sentry.CaptureException(err)
