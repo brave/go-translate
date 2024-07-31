@@ -778,6 +778,8 @@ github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl
 github.com/boombuler/barcode v1.0.1/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/brave-intl/bat-go/libs v0.0.0-20240627124656-1a00cb8aab0d h1:9XJgW6hgBPdgwwAgZU6WIxKwh6yKHntTStQ4u1gRq8Q=
 github.com/brave-intl/bat-go/libs v0.0.0-20240627124656-1a00cb8aab0d/go.mod h1:8QVK0ZrPIiemLAHAvgGYY+Xf3QXYclAHfnuiHHFxlK8=
+github.com/brave-intl/bat-go/libs v0.0.0-20240730075950-6c1012e207c1 h1:Z0Z3PZGSWdreQ8TjYpQqPol+2L2/n2adat5/bIl6sNU=
+github.com/brave-intl/bat-go/libs v0.0.0-20240730075950-6c1012e207c1/go.mod h1:8QVK0ZrPIiemLAHAvgGYY+Xf3QXYclAHfnuiHHFxlK8=
 github.com/bshuster-repo/logrus-logstash-hook v0.4.1/go.mod h1:zsTqEiSzDgAa/8GZR7E1qaXrhYNDKBYy5/dWPTIflbk=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
