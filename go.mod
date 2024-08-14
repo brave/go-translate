@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/brave-intl/bat-go/libs v0.0.0-20240627124656-1a00cb8aab0d
+	github.com/brave-intl/bat-go/libs v0.0.0-20240809112454-fc0db24c8659
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/getsentry/sentry-go v0.28.1
 	github.com/go-chi/chi/v5 v5.1.0
