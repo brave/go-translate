@@ -9,7 +9,7 @@ require (
 	github.com/getsentry/sentry-go v0.29.0
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/prometheus/client_golang v1.20.3
+	github.com/prometheus/client_golang v1.20.4
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
