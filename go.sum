@@ -786,6 +786,8 @@ github.com/brave-intl/bat-go/libs v0.0.0-20240925123800-e1fba490665b h1:BK2ol9+A
 github.com/brave-intl/bat-go/libs v0.0.0-20240925123800-e1fba490665b/go.mod h1:8QVK0ZrPIiemLAHAvgGYY+Xf3QXYclAHfnuiHHFxlK8=
 github.com/brave-intl/bat-go/libs v0.0.0-20241018104911-339ec8bf40ea h1:nQcaPKxxnoANcArW1NV5t5YGhu85FGQA0bsbbfC6hGw=
 github.com/brave-intl/bat-go/libs v0.0.0-20241018104911-339ec8bf40ea/go.mod h1:8QVK0ZrPIiemLAHAvgGYY+Xf3QXYclAHfnuiHHFxlK8=
+github.com/brave-intl/bat-go/libs v0.0.0-20241106035647-13008054a125 h1:XjnXFR5GuK/huIP5bPuxjX3vgJU9grcxHBsr/+C/4ZI=
+github.com/brave-intl/bat-go/libs v0.0.0-20241106035647-13008054a125/go.mod h1:8QVK0ZrPIiemLAHAvgGYY+Xf3QXYclAHfnuiHHFxlK8=
 github.com/bshuster-repo/logrus-logstash-hook v0.4.1/go.mod h1:zsTqEiSzDgAa/8GZR7E1qaXrhYNDKBYy5/dWPTIflbk=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
