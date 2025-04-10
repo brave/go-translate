@@ -1,3 +1,5 @@
+// Package language provides functionality for handling language codes and translations
+// between different language representation formats.
 package language
 
 import (
@@ -5,6 +7,7 @@ import (
 	"errors"
 )
 
+// ChromiumLanguageList contains all supported language codes in Chromium
 var ChromiumLanguageList = []string{
 	"af",
 	"am",
@@ -117,6 +120,8 @@ var ChromiumLanguageList = []string{
 	"zu",
 }
 
+// GoogleToLnxLangExclusions maps Google language codes to Lingvanex language codes
+// for special cases where they differ
 var GoogleToLnxLangExclusions = map[string]string{
 	"zh-CN": "zh-Hans",
 	"zh-TW": "zh-Hant",
@@ -125,6 +130,7 @@ var GoogleToLnxLangExclusions = map[string]string{
 	"jw":    "jv",
 }
 
+// MakeLnxToGoogleLangMapping creates a mapping from Lingvanex language codes to Google language codes
 func MakeLnxToGoogleLangMapping() map[string]string {
 	result := make(map[string]string)
 	for _, glang := range ChromiumLanguageList {
@@ -137,6 +143,7 @@ func MakeLnxToGoogleLangMapping() map[string]string {
 	return result
 }
 
+// MakeGoogleToLnxLangMapping creates a mapping from Google language codes to Lingvanex language codes
 func MakeGoogleToLnxLangMapping() map[string]string {
 	result := make(map[string]string)
 	for _, glang := range ChromiumLanguageList {
@@ -152,6 +159,7 @@ func MakeGoogleToLnxLangMapping() map[string]string {
 var googleToLnxLangMapping map[string]string
 var lnxToGoogleLangMapping map[string]string
 
+// ToGoogleLanguageCode converts a Lingvanex language code to a Google language code
 func ToGoogleLanguageCode(lnxLangCode string) (string, error) {
 	if val, ok := lnxToGoogleLangMapping[lnxLangCode]; ok {
 		return val, nil
@@ -159,6 +167,7 @@ func ToGoogleLanguageCode(lnxLangCode string) (string, error) {
 	return "", errors.New("Invalid language code " + lnxLangCode)
 }
 
+// ToLnxLanguageCode converts a Google language code to a Lingvanex language code
 func ToLnxLanguageCode(gLangCode string) (string, error) {
 	if len(googleToLnxLangMapping) == 0 {
 		return "", errors.New("uninitialized map")

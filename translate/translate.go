@@ -1,3 +1,5 @@
+// Package translate provides functionality for translating text between languages
+// and converting between Google Translate and Lingvanex API formats.
 package translate
 
 import (
@@ -69,6 +71,7 @@ type LingvanexResponseBody struct {
 	TranslatedText []string `json:"translatedText"`
 }
 
+// GetLanguageParams extracts source and target language parameters from the request
 func GetLanguageParams(r *http.Request) (string, string, error) {
 	// Parse google format query parameters
 	slVals := r.URL.Query()["sl"]

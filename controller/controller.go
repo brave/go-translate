@@ -1,3 +1,4 @@
+// Package controller provides handlers and routing for the translation service API
 package controller
 
 import (
@@ -21,7 +22,9 @@ import (
 )
 
 var (
+	// LnxEndpoint stores the configuration for Lingvanex translation service endpoints
 	LnxEndpoint   *LnxEndpointConfiguration
+	// LnxAPIKey is the API key for accessing Lingvanex translation services
 	LnxAPIKey     = os.Getenv("LNX_API_KEY")
 	languagePath  = "/get-languages"
 	translatePath = "/translate"
@@ -160,6 +163,7 @@ func TranslateRouter(ctx context.Context) (chi.Router, error) {
 	return r, nil
 }
 
+// ServeStaticFile serves static files from the assets directory for the translation script
 func ServeStaticFile(w http.ResponseWriter, r *http.Request) {
 	workDir, _ := os.Getwd()
 	filesDir := http.Dir(filepath.Join(workDir, "assets"))
@@ -235,6 +239,30 @@ func GetLanguageList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleBadRequestError writes a 400 Bad Request error response
+func handleBadRequestError(w http.ResponseWriter, message string, err error) {
+	http.Error(w, fmt.Sprintf("%s: %v", message, err), http.StatusBadRequest)
+}
+
+// handleInternalServerError writes a 500 Internal Server Error response
+func handleInternalServerError(w http.ResponseWriter, message string, err error) {
+	http.Error(w, fmt.Sprintf("%s: %v", message, err), http.StatusInternalServerError)
+}
+
+// handleNonOKResponse handles responses with non-OK status codes
+func handleNonOKResponse(w http.ResponseWriter, lnxResp *http.Response) {
+	w.WriteHeader(lnxResp.StatusCode)
+	_, err := w.Write([]byte("LNX-ERROR:\n"))
+	if err != nil {
+		handleInternalServerError(w, "Error writing error message", err)
+		return
+	}
+	_, err = io.Copy(w, lnxResp.Body)
+	if err != nil {
+		handleInternalServerError(w, "Error copying LnxEndpoint response body", err)
+	}
+}
+
 // Translate converts a Google format translate request into a Lingvanex format
 // one which will be send to the Lingvanex server, and write a Google format
 // response back to the client.
@@ -245,14 +273,14 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 
 	to, from, err := translate.GetLanguageParams(r)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
+		handleBadRequestError(w, "error converting to LnxEndpoint request", err)
 		return
 	}
 
 	endpoint := LnxEndpoint.GetEndpoint(from, to)
 	req, isAuto, err := translate.ToLingvanexRequest(r, endpoint+translatePath)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
+		handleBadRequestError(w, "error converting to LnxEndpoint request", err)
 		return
 	}
 
@@ -262,7 +290,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	client := getHTTPClient()
 	lnxResp, err := client.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error sending request to LnxEndpoint: %v", err), http.StatusInternalServerError)
+		handleInternalServerError(w, "error sending request to LnxEndpoint", err)
 		return
 	}
 	defer func() {
@@ -276,30 +304,21 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", lnxResp.Header["Content-Type"][0])
 	w.Header().Set("Access-Control-Allow-Origin", "*") // same as Google response
 
-	// Copy resonse body if status is not OK
+	// Handle non-OK responses
 	if lnxResp.StatusCode != http.StatusOK {
-		w.WriteHeader(lnxResp.StatusCode)
-		_, err = w.Write([]byte("LNX-ERROR:\n"))
-		if err != nil {
-			http.Error(w, "Error writing error message",  http.StatusInternalServerError)
-			return
-		}
-		_, err = io.Copy(w, lnxResp.Body)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error copying LnxEndpoint response body: %v", err), http.StatusInternalServerError)
-		}
+		handleNonOKResponse(w, lnxResp)
 		return
 	}
 
 	// Set google format response body
 	lnxBody, err := io.ReadAll(lnxResp.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading LnxEndpoint response body: %v", err), http.StatusInternalServerError)
+		handleInternalServerError(w, "Error reading LnxEndpoint response body", err)
 		return
 	}
 	body, err := translate.ToGoogleResponseBody(lnxBody, isAuto)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to google response body: %v", err), http.StatusInternalServerError)
+		handleInternalServerError(w, "Error converting to google response body", err)
 		return
 	}
 	w.WriteHeader(lnxResp.StatusCode)

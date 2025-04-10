@@ -1,7 +1,6 @@
 version: "2"
 
 run:
-  go: "1.17" ## TODO update to 1.18 once all linters support it
   timeout: 3m
 
 linters-settings:
@@ -36,15 +35,14 @@ linters-settings:
 
 linters:
   enable:
-    #    ## disabled by default
-#    - contextcheck # check the function whether use a non-inherited context
-#    - cyclop # checks function and package cyclomatic complexity
-#    - errname # Checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error.
-#    - gocritic # Provides diagnostics that check for bugs, performance and style issues.
-#    - gocyclo # Computes and checks the cyclomatic complexity of functions
-#    - nestif # Reports deeply nested if statements
+    ## Enable extra linters that are disabled by default:
+    - contextcheck # check the function whether use a non-inherited context
+    - cyclop # checks function and package cyclomatic complexity
+    - errname # Checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error.
+    - gocritic # Provides diagnostics that check for bugs, performance and style issues.
+    - gocyclo # Computes and checks the cyclomatic complexity of functions
+    - nestif # Reports deeply nested if statements
     - revive # Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
-#    - sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed
-#    - stylecheck # Stylecheck is a replacement for golint
-#    - wastedassign # wastedassign finds wasted assignment statements.
-#    - whitespace # Tool for detection of leading and trailing whitespace
+    - sqlclosecheck # Checks that sql.Rows and sql.Stmt are closed
+    - wastedassign # wastedassign finds wasted assignment statements.
+    - whitespace # Tool for detection of leading and trailing whitespace
