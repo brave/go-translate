@@ -28,6 +28,8 @@ var (
 	LnxAPIKey     = os.Getenv("LNX_API_KEY")
 	languagePath  = "/get-languages"
 	translatePath = "/translate"
+	// MaxResponseSize limits the size of response bodies
+	MaxResponseSize = int64(5 * 1024 * 1024) // 5MB
 )
 
 // LnxEndpointConfiguration describes a configuration of lingvanex endpoints, their supported
@@ -209,7 +211,7 @@ func getLanguageList(ctx context.Context, endpoint string) (*language.GoogleLang
 	}()
 
 	// Convert to google format language list and write it back
-	lnxBody, err := io.ReadAll(lnxResp.Body)
+	lnxBody, err := io.ReadAll(io.LimitReader(lnxResp.Body, MaxResponseSize))
 	if err != nil {
 		return nil, fmt.Errorf("error reading Lnx response body: %v", err)
 	}
@@ -311,7 +313,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set google format response body
-	lnxBody, err := io.ReadAll(lnxResp.Body)
+	lnxBody, err := io.ReadAll(io.LimitReader(lnxResp.Body, MaxResponseSize))
 	if err != nil {
 		handleInternalServerError(w, "Error reading LnxEndpoint response body", err)
 		return
