@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -46,7 +45,7 @@ type LnxEndpointConfiguration struct {
 // NewLnxEndpointConfiguration returns a new endpoint configuration based on a list of endpoints, weights and list of supported languages
 func NewLnxEndpointConfiguration(endpoints []string, weights []float64, languageLists []language.GoogleLanguageList) (*LnxEndpointConfiguration, error) {
 	if len(endpoints) != len(weights) || len(weights) != len(languageLists) {
-		return nil, fmt.Errorf("Number of endpoints must match number of weights and number of language lists")
+		return nil, fmt.Errorf("number of endpoints must match number of weights and number of language lists")
 	}
 
 	conf := LnxEndpointConfiguration{
@@ -127,7 +126,7 @@ func TranslateRouter(ctx context.Context) (chi.Router, error) {
 		if len(weight) > 0 {
 			weight, err := strconv.ParseFloat(weight, 64)
 			if err != nil {
-				return r, fmt.Errorf("Must pass at least one endpoint via LNX_HOST and one weight via LNX_WEIGHTS: %v", err)
+				return r, fmt.Errorf("must pass at least one endpoint via LNX_HOST and one weight via LNX_WEIGHTS: %v", err)
 			}
 			weights = append(weights, weight)
 		}
@@ -148,7 +147,7 @@ func TranslateRouter(ctx context.Context) (chi.Router, error) {
 	var err error
 	LnxEndpoint, err = NewLnxEndpointConfiguration(endpoints, weights, lists)
 	if err != nil {
-		return r, fmt.Errorf("Failed to setup endpoint configuration: %v", err)
+		return r, fmt.Errorf("failed to setup endpoint configuration: %v", err)
 	}
 
 	r.Post("/translate_a/t", middleware.InstrumentHandler("Translate", http.HandlerFunc(Translate)).ServeHTTP)
@@ -186,17 +185,17 @@ func getLanguageList(ctx context.Context, endpoint string) (*language.GoogleLang
 	logger := logging.FromContext(ctx)
 
 	// Send a get language list request to Lnx
-	req, err := http.NewRequest("GET", endpoint+languagePath, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint+languagePath, nil)
 	req.Header.Add("Authorization", "Bearer "+LnxAPIKey)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error creating Lnx request: %v", err)
+		return nil, fmt.Errorf("error creating Lnx request: %v", err)
 	}
 
 	client := getHTTPClient()
 	lnxResp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Error sending request to Lnx server: %v", err)
+		return nil, fmt.Errorf("error sending request to Lnx server: %v", err)
 	}
 	defer func() {
 		err := lnxResp.Body.Close()
@@ -206,13 +205,13 @@ func getLanguageList(ctx context.Context, endpoint string) (*language.GoogleLang
 	}()
 
 	// Convert to google format language list and write it back
-	lnxBody, err := ioutil.ReadAll(lnxResp.Body)
+	lnxBody, err := io.ReadAll(lnxResp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Error reading Lnx response body: %v", err)
+		return nil, fmt.Errorf("error reading Lnx response body: %v", err)
 	}
 	list, err := language.ToGoogleLanguageList(lnxBody)
 	if err != nil {
-		return nil, fmt.Errorf("Error converting to google language list: %v", err)
+		return nil, fmt.Errorf("error converting to google language list: %v", err)
 	}
 
 	return list, nil
@@ -246,14 +245,14 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 
 	to, from, err := translate.GetLanguageParams(r)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	endpoint := LnxEndpoint.GetEndpoint(from, to)
 	req, isAuto, err := translate.ToLingvanexRequest(r, endpoint+translatePath)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("error converting to LnxEndpoint request: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -263,7 +262,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	client := getHTTPClient()
 	lnxResp, err := client.Do(req)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending request to LnxEndpoint: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("error sending request to LnxEndpoint: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer func() {
@@ -280,7 +279,11 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	// Copy resonse body if status is not OK
 	if lnxResp.StatusCode != http.StatusOK {
 		w.WriteHeader(lnxResp.StatusCode)
-		w.Write([]byte("LNX-ERROR:\n"))
+		_, err = w.Write([]byte("LNX-ERROR:\n"))
+		if err != nil {
+			http.Error(w, "Error writing error message",  http.StatusInternalServerError)
+			return
+		}
 		_, err = io.Copy(w, lnxResp.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error copying LnxEndpoint response body: %v", err), http.StatusInternalServerError)
@@ -289,7 +292,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set google format response body
-	lnxBody, err := ioutil.ReadAll(lnxResp.Body)
+	lnxBody, err := io.ReadAll(lnxResp.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error reading LnxEndpoint response body: %v", err), http.StatusInternalServerError)
 		return

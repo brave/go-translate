@@ -64,9 +64,10 @@ func TestLnxEndpointConfiguration_GetEndpoint(t *testing.T) {
 
 		for i := 0; i<2000; i++ {
 			got := conf.GetEndpoint(from, to)
-			if got == "endpoint1.com" {
+			switch got {
+			case "endpoint1.com":
 				countOne++
-			} else if got == "endpoint2.com" {
+			case "endpoint2.com":
 				countTwo++
 			}
 		}
