@@ -1,3 +1,4 @@
+// Package server provides the HTTP server implementation for the translation service
 package server
 
 import (
@@ -56,10 +57,10 @@ func StartServer() {
 			Str("port", ":9090").
 			Msg("Starting metrics server")
 
-		err := http.ListenAndServe(":9090", middleware.Metrics())
-		if err != nil {
-			sentry.CaptureException(err)
-			logger.Panic().Err(err).Msg("metrics HTTP server start failed!")
+		metricsErr := http.ListenAndServe(":9090", middleware.Metrics())
+		if metricsErr != nil {
+			sentry.CaptureException(metricsErr)
+			logger.Panic().Err(metricsErr).Msg("metrics HTTP server start failed!")
 		}
 	}()
 
