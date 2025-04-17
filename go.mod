@@ -6,7 +6,7 @@ toolchain go1.24.2
 
 require (
 	github.com/brave-intl/bat-go/libs v0.0.0-20250408141030-ea2600756e97
-	github.com/getsentry/sentry-go v0.31.1
+	github.com/getsentry/sentry-go v0.32.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.34.0
