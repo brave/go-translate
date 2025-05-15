@@ -2,7 +2,7 @@ module github.com/brave/go-translate
 
 go 1.24
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	github.com/brave-intl/bat-go/libs v0.0.0-20250408141030-ea2600756e97
