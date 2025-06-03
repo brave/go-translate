@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.3
 
 require (
-	github.com/brave-intl/bat-go/libs v0.0.0-20250408141030-ea2600756e97
+	github.com/brave-intl/bat-go/libs v0.0.0-20250527094428-77b24dc8942e
 	github.com/getsentry/sentry-go v0.33.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/prometheus/client_golang v1.22.0
@@ -30,14 +30,14 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/redis/go-redis/v9 v9.7.3 // indirect
+	github.com/redis/go-redis/v9 v9.8.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shengdoushi/base58 v1.0.0 // indirect
 	github.com/throttled/throttled/v2 v2.12.0 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
