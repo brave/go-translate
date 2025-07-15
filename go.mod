@@ -2,11 +2,11 @@ module github.com/brave/go-translate
 
 go 1.24
 
-toolchain go1.24.4
+toolchain go1.24.5
 
 require (
 	github.com/brave-intl/bat-go/libs v0.0.0-20250620104757-9e2f8ff87fd8
-	github.com/getsentry/sentry-go v0.34.0
+	github.com/getsentry/sentry-go v0.34.1
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.34.0
