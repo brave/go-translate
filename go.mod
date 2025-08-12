@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.5
 
 require (
-	github.com/brave-intl/bat-go/libs v0.0.0-20250620104757-9e2f8ff87fd8
+	github.com/brave-intl/bat-go/libs v0.0.0-20250804193434-74d0d06b6f88
 	github.com/getsentry/sentry-go v0.35.0
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/prometheus/client_golang v1.23.0
