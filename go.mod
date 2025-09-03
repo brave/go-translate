@@ -7,10 +7,10 @@ toolchain go1.25.0
 require (
 	github.com/brave-intl/bat-go/libs v0.0.0-20250804193434-74d0d06b6f88
 	github.com/getsentry/sentry-go v0.35.1
-	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/chi/v5 v5.2.3
 	github.com/prometheus/client_golang v1.23.0
 	github.com/rs/zerolog v1.34.0
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
