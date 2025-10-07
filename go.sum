@@ -12,6 +12,8 @@ github.com/brave-intl/bat-go/libs v0.0.0-20250620104757-9e2f8ff87fd8 h1:DUBBDWBw
 github.com/brave-intl/bat-go/libs v0.0.0-20250620104757-9e2f8ff87fd8/go.mod h1:4+sgvJzfFPSLlEGXTX/LukdzwXVpKwNcvtYsg96BRWg=
 github.com/brave-intl/bat-go/libs v0.0.0-20250804193434-74d0d06b6f88 h1:rpf8vmjxDekb0Fl/CgyIsGR7pQvT8ExXZFOkffEQ8+4=
 github.com/brave-intl/bat-go/libs v0.0.0-20250804193434-74d0d06b6f88/go.mod h1:B4mM99JkzYGkW89h5aOLQvblzTv623ot4gDh+mKVRN0=
+github.com/brave-intl/bat-go/libs v0.0.0-20250930171652-bfe69452a8ce h1:h3N4qk6prkuLfZXnk37FjfN1Qw07qjQIQpDhJOvMhZo=
+github.com/brave-intl/bat-go/libs v0.0.0-20250930171652-bfe69452a8ce/go.mod h1:1O5QeWrKYWLWF4YKTmW/alvy7tVVmuiIO4HbD18S2r4=
 github.com/bsm/ginkgo/v2 v2.7.0/go.mod h1:AiKlXPm7ItEHNc/2+OkrNG4E0ITzojb9/xWzvQ9XZ9w=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
