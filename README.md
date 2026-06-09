@@ -52,6 +52,8 @@ make build
 - Set LNX_HOST (company VPN should be enabled):
   `export LNX_HOST=http://translate-lnx-dev-a4b82554457afe1c.elb.us-west-2.amazonaws.com:8080/api`
 
+- Optionally set LNX_ALIGNER to pass the Lingvanex `aligner` option in translate requests (e.g. `export LNX_ALIGNER=2`). When unset, the field is omitted from upstream requests.
+
 - Launch the local server: `make build`;
 
 - Launch the browser with switches:

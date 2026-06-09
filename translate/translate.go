@@ -35,6 +35,7 @@ type RequestBody struct {
 	To            string   `json:"target"`
 	Data          []string `json:"q"`
 	TranslateMode string   `json:"translateMode"`
+	Aligner       *int     `json:"aligner,omitempty"`
 }
 
 // LingvanexResponseBody represents JSON format of Lingvanex response bodies.
@@ -87,7 +88,7 @@ func GetLanguageParams(r *http.Request) (string, string, error) {
 
 // ToLingvanexRequest parses the input Google format translate request and
 // return a corresponding Lingvanex format request.
-func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool, error) {
+func ToLingvanexRequest(r *http.Request, serverURL string, aligner *int) (*http.Request, bool, error) {
 	lnxURL := serverURL
 
 	from, to, err := GetLanguageParams(r)
@@ -132,6 +133,7 @@ func ToLingvanexRequest(r *http.Request, serverURL string) (*http.Request, bool,
 	}
 	reqBody.To = lnxTo
 	reqBody.TranslateMode = "html"
+	reqBody.Aligner = aligner
 	reqBody.Data = qVals
 
 	body, err := json.Marshal(reqBody)

@@ -23,14 +23,28 @@ import (
 
 var (
 	// LnxEndpoint stores the configuration for Lingvanex translation service endpoints
-	LnxEndpoint   *LnxEndpointConfiguration
+	LnxEndpoint *LnxEndpointConfiguration
 	// LnxAPIKey is the API key for accessing Lingvanex translation services
-	LnxAPIKey     = os.Getenv("LNX_API_KEY")
+	LnxAPIKey = os.Getenv("LNX_API_KEY")
+	// LnxAligner is the aligner option sent to Lingvanex translate requests when set via LNX_ALIGNER
+	LnxAligner *int
 	languagePath  = "/get-languages"
 	translatePath = "/translate"
 	// MaxResponseSize limits the size of response bodies
 	MaxResponseSize = int64(5 * 1024 * 1024) // 5MB
 )
+
+func parseLnxAligner() (*int, error) {
+	alignerStr := os.Getenv("LNX_ALIGNER")
+	if alignerStr == "" {
+		return nil, nil
+	}
+	val, err := strconv.Atoi(alignerStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid LNX_ALIGNER %q: %v", alignerStr, err)
+	}
+	return &val, nil
+}
 
 // LnxEndpointConfiguration describes a configuration of lingvanex endpoints, their supported
 // languages and weights.
@@ -140,6 +154,12 @@ func TranslateRouter(ctx context.Context) (chi.Router, error) {
 		weights = append(weights, 1)
 	}
 
+	var err error
+	LnxAligner, err = parseLnxAligner()
+	if err != nil {
+		return r, fmt.Errorf("failed to parse LNX_ALIGNER: %v", err)
+	}
+
 	var lists []language.GoogleLanguageList
 	for _, endpoint := range endpoints {
 		list, err := getLanguageList(ctx, endpoint)
@@ -149,7 +169,6 @@ func TranslateRouter(ctx context.Context) (chi.Router, error) {
 		lists = append(lists, *list)
 	}
 
-	var err error
 	LnxEndpoint, err = NewLnxEndpointConfiguration(endpoints, weights, lists)
 	if err != nil {
 		return r, fmt.Errorf("failed to setup endpoint configuration: %v", err)
@@ -280,7 +299,7 @@ func Translate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	endpoint := LnxEndpoint.GetEndpoint(from, to)
-	req, isAuto, err := translate.ToLingvanexRequest(r, endpoint+translatePath)
+	req, isAuto, err := translate.ToLingvanexRequest(r, endpoint+translatePath, LnxAligner)
 	if err != nil {
 		handleBadRequestError(w, "error converting to LnxEndpoint request", err)
 		return
