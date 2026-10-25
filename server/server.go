@@ -22,7 +22,6 @@ func setupRouter(ctx context.Context, logger *zerolog.Logger) (context.Context, 
 	r := chi.NewRouter()
 
 	r.Use(chiware.RequestID)
-	r.Use(chiware.RealIP)
 	r.Use(chiware.Heartbeat("/"))
 	r.Use(chiware.Timeout(60 * time.Second))
 	r.Use(middleware.BearerToken)
