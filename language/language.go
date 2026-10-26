@@ -130,6 +130,24 @@ var GoogleToLnxLangExclusions = map[string]string{
 	"jw":    "jv",
 }
 
+// ModernToGoogleLangAliases maps current BCP 47 language codes to the legacy
+// Google codes used in ChromiumLanguageList. Chromium sends the modern codes
+// since it moved its translate language handling to BCP 47.
+var ModernToGoogleLangAliases = map[string]string{
+	"he":  "iw",
+	"jv":  "jw",
+	"fil": "tl",
+}
+
+// NormalizeGoogleLanguageCode converts a modern BCP 47 language code to the
+// legacy Google code if they differ, and returns any other code unchanged.
+func NormalizeGoogleLanguageCode(langCode string) string {
+	if val, ok := ModernToGoogleLangAliases[langCode]; ok {
+		return val
+	}
+	return langCode
+}
+
 // MakeLnxToGoogleLangMapping creates a mapping from Lingvanex language codes to Google language codes
 func MakeLnxToGoogleLangMapping() map[string]string {
 	result := make(map[string]string)

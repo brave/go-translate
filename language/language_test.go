@@ -21,3 +21,24 @@ func TestToGoogleLanguageList(t *testing.T) {
 
 	assert.Equal(t, expected, *list)
 }
+
+// Modern BCP 47 codes sent by newer Chromium versions should map to the legacy
+// Google codes, and from there to the Lingvanex codes.
+func TestNormalizeGoogleLanguageCode(t *testing.T) {
+	cases := map[string]string{
+		"he":    "iw",
+		"jv":    "jw",
+		"fil":   "tl",
+		"iw":    "iw",
+		"fr":    "fr",
+		"zh-CN": "zh-CN",
+		"auto":  "auto",
+	}
+	for input, expected := range cases {
+		assert.Equal(t, expected, NormalizeGoogleLanguageCode(input), input)
+	}
+
+	lnx, err := ToLnxLanguageCode(NormalizeGoogleLanguageCode("he"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "he", lnx)
+}
