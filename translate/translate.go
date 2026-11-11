@@ -83,7 +83,8 @@ func GetLanguageParams(r *http.Request) (string, string, error) {
 	if len(tlVals) != 1 {
 		return "", "", errors.New("invalid query parameter format: There should be one tl parameter")
 	}
-	return slVals[0], tlVals[0], nil
+	return language.NormalizeGoogleLanguageCode(slVals[0]),
+		language.NormalizeGoogleLanguageCode(tlVals[0]), nil
 }
 
 // ToLingvanexRequest parses the input Google format translate request and
